@@ -18,7 +18,7 @@ const reservaSchema = new mongoose.Schema({
 });
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// CONFIGURAÇÃO DE E-MAIL (Dados inseridos conforme solicitado)
+// CONFIGURAÇÃO DE E-MAIL
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { 
@@ -33,25 +33,23 @@ cron.schedule('* * * * *', async () => {
     const hoje = agora.toISOString().split('T')[0];
     const reservas = await Reserva.find({ data: hoje, status: 'pago' });
 
-    // Correção: 'async' inserido antes de (res) para evitar o erro de SyntaxError
-    reservas.forEach(async (res) => { 
+    // Correção do loop: o async deve estar aqui para o await funcionar internamente
+    for (const res of reservas) {
         const [h, m] = res.hora.split(':');
         const dataInicio = new Date(`${res.data}T${h}:${m}:00`);
         const dataFim = new Date(dataInicio.getTime() + (parseInt(res.duracao) * 60000));
         const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
 
-        // AVISO DE 10 MINUTOS
         if (tempoRestanteMin === 10) {
-            enviarEmail(res.email, res.nome, "Informamos que sua sessão na ŪNIKA encerra em 10 minutos. Sinta-se à vontade para organizar seus pertences e finalizar suas atividades com tranquilidade. Esperamos que seu tempo conosco tenha sido memorável.");
+            enviarEmail(res.email, res.nome, "Informamos que sua sessão na ŪNIKA encerra em 10 minutos. Sinta-se à vontade para organizar seus pertences.");
         }
 
-        // ENCERRAMENTO TOTAL
         if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
-            console.log(`[SHUTDOWN] ${res.servico} - ${res.nome}`);
-            enviarEmail(res.email, res.nome, "Sua sessão foi encerrada e os equipamentos foram desligados. Agradecemos por escolher a ŪNIKA para sua produtividade hoje. Esperamos recebê-lo(a) novamente em breve.");
+            console.log(`[SHUTDOWN] ${res.servico}`);
+            enviarEmail(res.email, res.nome, "Sua sessão foi encerrada e os equipamentos foram desligados. Agradecemos por escolher a ŪNIKA.");
             await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
         }
-    });
+    }
 });
 
 function enviarEmail(email, nome, mensagem) {
@@ -64,37 +62,59 @@ function enviarEmail(email, nome, mensagem) {
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS (LAYOUT PRESERVADO)
+// 3. ESTILOS E PÁGINAS (CORREÇÃO DO "CANNOT GET")
 const style = `
     :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
     h1 { letter-spacing: 12px; font-weight: 300; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
-    .slogan { color: var(--gold); font-size: 0.7rem; letter-spacing: 3px; margin-top: 10px; text-transform: uppercase; opacity: 0.8; }
-    .container { width: 90%; max-width: 400px; background: var(--card); padding: 40px; border: 1px solid #222; border-radius: 4px; margin-top: 30px; }
-    .btn-gold { width: 100%; padding: 20px; background: transparent; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; font-weight: 600; letter-spacing: 3px; cursor: pointer; text-decoration: none; display: block; margin-bottom: 10px; }
+    .btn-gold { width: 100%; max-width: 300px; padding: 20px; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; font-weight: 600; letter-spacing: 3px; cursor: pointer; text-decoration: none; display: block; margin: 10px auto; }
+    input { width: 100%; max-width: 300px; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 15px 0; margin-bottom: 30px; font-size: 1.2rem; text-align: center; outline: none; }
 `;
 
-// 4. ROTAS DO SITE
 app.get('/', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="slogan">Onde o luxo encontra a produtividade</div><div class="container" style="background:transparent;border:none;"><a href="/reservar" class="btn-gold">Reservar Espaço</a><a href="/login" class="btn-gold">Acessar Meu Painel</a></div></body></html>`);
+    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><a href="/reservar" class="btn-gold">Reservar</a><a href="/login" class="btn-gold">Login</a></body></html>`);
 });
 
+app.get('/login', (req, res) => {
+    res.send(`<html><head><style>${style}</style></head><body><h1>BEM-VINDO</h1><form action="/painel" method="GET"><input type="text" name="cpf" placeholder="DIGITE SEU CPF" required><button type="submit" class="btn-gold">ENTRAR</button></form></body></html>`);
+});
+
+// PAINEL COM CRONÔMETRO E POPUP
+app.get('/painel', async (req, res) => {
+    const { cpf } = req.query;
+    const hoje = new Date().toISOString().split('T')[0];
+    const reserva = await Reserva.findOne({ doc: cpf, data: hoje, status: { $in: ['pago', 'finalizado'] } });
+
+    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body><h1>ACESSO NEGADO</h1><a href="/login" class="btn-outline">Voltar</a></body></html>`);
+
+    res.send(`<html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>${style}#timer{font-size:3rem;color:var(--gold);letter-spacing:5px;}</style></head><body><h1>ŪNIKA</h1><div id="timer">--:--</div>
+    <script>
+        let avisou10 = false;
+        function startTimer(duration, start){ 
+            const display=document.querySelector('#timer'); 
+            const end=new Date(start).getTime()+(duration*60000); 
+            setInterval(()=>{ 
+                const dist=end-new Date().getTime(); 
+                if(dist < 0){ 
+                    display.innerHTML="FIM"; 
+                    if(dist > -5000) alert("SUA SESSÃO NA ŪNIKA ENCERROU.");
+                    return; 
+                }
+                const m = Math.floor((dist % 3600000) / 60000);
+                if(m === 10 && !avisou10) { alert("ATENÇÃO: Faltam 10 minutos."); avisou10 = true; }
+                const h=Math.floor(dist/3600000);
+                const s=Math.floor((dist%60000)/1000);
+                display.innerHTML=(h>0?h+":":"")+(m<10?"0"+m:m)+":"+(s<10?"0"+s:s); 
+            },1000); 
+        }
+        startTimer(parseInt("${reserva.duracao}"), new Date("${reserva.data}T${reserva.hora}:00"));
+    </script></body></html>`);
+});
+
+// ROTA DE TESTE RÁPIDO
 app.get('/testar-email', (req, res) => {
-    enviarEmail("riostoragecube@gmail.com", "Admin ŪNIKA", "Se você recebeu isso, a configuração de e-mail está perfeita e funcionando!");
-    res.send("<h1>Comando de teste enviado!</h1><p>Verifique sua caixa de entrada e o spam.</p>");
-});
-
-// APIs EXTRAS (Horários e Checkout Asaas)
-app.get('/api/horarios-ocupados', async (req, res) => {
-    const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
-    res.json(ocupados.map(r => r.hora));
-});
-
-app.post('/api/checkout', async (req, res) => {
-    const { doc, servico, duracao } = req.body;
-    const links = { "Banheiro Masc": "https://www.asaas.com/c/xx8y9j7aelqt1u1z", "Banheiro Fem": "https://www.asaas.com/c/hy4cb2sz0ya4mmrd", "120": "https://www.asaas.com/c/astpmmsj1m8b7wct", "diaria": "https://www.asaas.com/c/9yyhtmtds2u0je33" };
-    const linkFinal = (links[servico] || links[duracao] || links["120"]) + "?externalReference=" + doc;
-    try { await new Reserva(req.body).save(); res.send(`<script>location.href='${linkFinal}';</script>`); } catch (e) { res.send("Erro."); }
+    enviarEmail("riostoragecube@gmail.com", "Admin ŪNIKA", "Teste de e-mail funcionando!");
+    res.send("<h1>Comando enviado!</h1>");
 });
 
 app.listen(process.env.PORT || 3000);
