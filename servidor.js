@@ -22,8 +22,8 @@ const Reserva = mongoose.model('Reserva', reservaSchema);
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { 
-        user: 'seu-email@gmail.com', 
-        pass: 'sua-senha-de-app-aqui' 
+        user: 'riostoragecube@gmail.com', 
+        pass: 'imzsysjsuihjdyay' 
     }
 });
 
@@ -54,7 +54,7 @@ cron.schedule('* * * * *', async () => {
 
 function enviarEmail(email, nome, mensagem) {
     const mailOptions = {
-        from: 'ŪNIKA | Experiência Digital <seu-email@gmail.com>',
+        from: 'ŪNIKA | Experiência Digital <riostoragecube@gmail.com>',
         to: email,
         subject: 'ŪNIKA | Informação importante sobre sua sessão',
         text: `Olá, ${nome}.\n\n${mensagem}\n\nAtenciosamente,\nEquipe ŪNIKA`
@@ -65,7 +65,7 @@ function enviarEmail(email, nome, mensagem) {
 // 3. ROTA DE TESTE (Acesse /testar-email para validar)
 app.get('/testar-email', (req, res) => {
     // Troque pelo seu email real abaixo para testar
-    enviarEmail("seu-email-pessoal@gmail.com", "Teste ŪNIKA", "Se você recebeu isso, a configuração de e-mail está funcionando!");
+    enviarEmail("riostoragecube@gmail.com", "Teste ŪNIKA", "Se você recebeu isso, a configuração de e-mail está funcionando!");
     res.send("<h1>Comando de teste enviado!</h1><p>Verifique sua caixa de entrada e o spam.</p>");
 });
 
