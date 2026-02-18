@@ -11,34 +11,34 @@
 
     <header>
         <div class="container">
-            <h1 id="logo">ŪNIKA</h1>
+            <h1 id="logo" style="cursor: pointer;">ŪNIKA</h1>
             <nav>
-                <span>Coworking Autônomo</span>
+                <span>Coworking Autônomo 24h</span>
             </nav>
         </div>
     </header>
 
     <main class="container">
         <section class="hero">
-            <h2>Seu espaço, seu tempo.</h2>
-            <p>Acesso instantâneo 24h via PIX.</p>
+            <h2>Trabalhe com liberdade.</h2>
+            <p>Escolha seu espaço e acesse agora via PIX.</p>
         </section>
 
         <div class="grid-services">
             <div class="card" onclick="selectService('estacao', 'Estação de Trabalho')">
                 <div class="badge">A partir de R$ 10</div>
                 <h3>Estação de Trabalho</h3>
-                <p>Mesa individual, Wi-Fi 6 e café.</p>
+                <p>Mesa individual com Wi-Fi de alta velocidade.</p>
             </div>
             <div class="card" onclick="selectService('reuniao', 'Sala de Reunião')">
                 <div class="badge">A partir de R$ 50</div>
                 <h3>Sala de Reunião</h3>
-                <p>Privacidade e TV para apresentações.</p>
+                <p>Espaço privativo para sua equipe e clientes.</p>
             </div>
             <div class="card" onclick="selectService('banheiro', 'Banheiro / Ducha')">
-                <div class="badge">R$ 5 (Uso único)</div>
+                <div class="badge">R$ 5,00</div>
                 <h3>Banheiro</h3>
-                <p>Acesso imediato e higienizado.</p>
+                <p>Acesso imediato para higiene e bem-estar.</p>
             </div>
         </div>
 
@@ -46,32 +46,35 @@
             <h3 id="selected-title">Configurar Reserva</h3>
             
             <div class="input-group">
-                <label>Seu Nome</label>
-                <input type="text" id="userName" placeholder="Ex: João Silva">
+                <label>Seu Nome Completo</label>
+                <input type="text" id="userName" placeholder="Para identificação no sistema">
             </div>
 
             <div id="time-selection">
-                <label>Duração</label>
+                <label>Escolha a Duração</label>
                 <div class="time-grid">
-                    <button class="time-btn" onclick="setTime(30)">30 min</button>
+                    <button class="time-btn active" onclick="setTime(30)">30 min</button>
                     <button class="time-btn" onclick="setTime(60)">60 min</button>
                     <button class="time-btn" onclick="setTime(120)">120 min</button>
                 </div>
             </div>
 
-            <div class="total-area">
-                <span>Total: <strong id="display-price">R$ 0,00</strong></span>
+            <div class="total-area" style="margin-top: 20px; text-align: center;">
+                <p style="font-size: 1.2rem;">Total a pagar: <strong id="display-price">R$ 10,00</strong></p>
             </div>
 
             <button class="btn-primary" onclick="generatePix()">Gerar QR Code de Acesso</button>
-            <button class="btn-cancel" onclick="resetUI()">Voltar</button>
+            <button class="btn-cancel" onclick="resetUI()">Voltar aos serviços</button>
         </div>
 
         <div id="pix-area" class="pix-container hidden">
-            <h3>Escaneie para Abrir</h3>
-            <img id="qr-code-img" src="" alt="QR Code PIX">
-            <p>A porta liberará automaticamente após o pagamento.</p>
-            <button class="btn-cancel" onclick="resetUI()">Cancelar</button>
+            <div style="text-align: center;">
+                <h3>Pagamento Identificado</h3>
+                <p>Escaneie o QR Code abaixo para liberar sua entrada.</p>
+                <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto; display: block;">
+                <p class="status-msg">Aguardando confirmação bancária...</p>
+                <button class="btn-cancel" onclick="resetUI()">Cancelar e Voltar</button>
+            </div>
         </div>
     </main>
 
