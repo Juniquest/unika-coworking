@@ -16,14 +16,14 @@ const reservaSchema = new mongoose.Schema({
 });
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// 2. ROTA DE VERIFICAÇÃO
+// 2. ROTA DE VERIFICAÇÃO (OCUPADOS)
 app.get('/api/horarios-ocupados', async (req, res) => {
     const { data } = req.query;
     const ocupados = await Reserva.find({ data: data, status: 'pago' }).select('hora -_id');
     res.json(ocupados.map(r => r.hora));
 });
 
-// 3. INTERFACE VISUAL (FONTE AUMENTADA E COR NÍTIDA)
+// 3. INTERFACE VISUAL (COM BANHEIRO + FONTES GRANDES + ALTO CONTRASTE)
 app.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
     <title>ŪNIKA | Coworking Autônomo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #ffffff; --text-dim: #cccccc; }
+        :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #ffffff; --text-dim: #e0e0e0; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; -webkit-font-smoothing: antialiased; }
         
         header { padding: 40px 0; text-align: center; }
@@ -43,30 +43,30 @@ app.get('/', (req, res) => {
         
         .container { width: 92%; max-width: 500px; background: var(--card); border: 1px solid #222; padding: 30px; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); margin-bottom: 50px; }
         
-        h2 { font-weight: 400; font-size: 1rem; border-left: 3px solid var(--gold); padding-left: 15px; margin: 30px 0 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+        h2 { font-weight: 400; font-size: 1.1rem; border-left: 3px solid var(--gold); padding-left: 15px; margin: 30px 0 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
         
-        /* Inputs mais visíveis */
-        input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 12px 0; font-size: 1.1rem; outline: none; margin-bottom: 20px; transition: 0.3s; font-weight: 300; }
+        input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 12px 0; font-size: 1.1rem; outline: none; margin-bottom: 20px; transition: 0.3s; font-weight: 400; }
         input:focus { border-color: var(--gold); }
-        input::placeholder { color: #555; }
+        input::placeholder { color: #666; }
 
-        .service-grid, .option-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        /* Grid de 3 colunas para incluir o Banheiro */
+        .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
+        .option-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 25px; }
         
-        .service-item, .option-item { border: 1px solid #333; padding: 16px 5px; text-align: center; cursor: pointer; font-size: 0.85rem; color: var(--text-dim); transition: 0.3s; font-weight: 400; letter-spacing: 1px; }
-        .service-item.selected, .option-item.selected { border-color: var(--gold); color: #fff; background: rgba(212, 175, 55, 0.15); font-weight: 600; }
+        .service-item, .option-item { border: 1px solid #333; padding: 18px 5px; text-align: center; cursor: pointer; font-size: 0.8rem; color: var(--text-dim); transition: 0.3s; font-weight: 600; letter-spacing: 1px; }
+        .service-item.selected, .option-item.selected { border-color: var(--gold); color: #fff; background: rgba(212, 175, 55, 0.2); border-width: 2px; }
         .option-item.selected { background: var(--gold); color: #000; }
 
-        /* Agenda Nitida */
         .agenda-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-height: 300px; overflow-y: auto; border: 1px solid #222; padding: 15px; background: #000; }
-        .hora-item { border: 1px solid #222; padding: 12px 2px; text-align: center; font-size: 0.9rem; cursor: pointer; color: var(--text-dim); transition: 0.2s; font-weight: 600; }
+        .hora-item { border: 1px solid #222; padding: 15px 2px; text-align: center; font-size: 1rem; cursor: pointer; color: var(--text-dim); transition: 0.2s; font-weight: 600; }
         
         .hora-item.ocupado { background: #1a1a1a; color: #444; cursor: not-allowed; border: 1px solid #222; text-decoration: line-through; }
         .hora-item.selected { background: #fff; color: #000; border-color: #fff; }
 
-        .btn-pay { width: 100%; padding: 22px; background: transparent; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; letter-spacing: 4px; font-weight: 600; text-transform: uppercase; margin-top: 35px; transition: 0.5s; font-size: 1rem; }
+        .btn-pay { width: 100%; padding: 22px; background: transparent; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; letter-spacing: 4px; font-weight: 600; text-transform: uppercase; margin-top: 35px; transition: 0.5s; font-size: 1.1rem; }
         .btn-pay:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
 
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     </style>
 </head>
@@ -82,6 +82,7 @@ app.get('/', (req, res) => {
             <div class="service-grid">
                 <div class="service-item" onclick="selS('Estação', this)">ESTAÇÃO</div>
                 <div class="service-item" onclick="selS('Sala', this)">SALA</div>
+                <div class="service-item" onclick="selS('Banheiro', this)">BANHEIRO</div>
             </div>
             <input type="hidden" name="servico" id="serv_val" required>
 
@@ -102,9 +103,9 @@ app.get('/', (req, res) => {
             <input type="hidden" name="duracao" id="dur_val" required>
 
             <h2>04. Início (30 em 30 min)</h2>
-            <input type="date" name="data" id="data_select" required onchange="carregarHorarios()" style="border-bottom: 2px solid var(--gold); cursor: pointer;">
+            <input type="date" name="data" id="data_select" required onchange="carregarHorarios()" style="border-bottom: 2px solid var(--gold); cursor: pointer; color:#fff;">
             <div class="agenda-grid" id="ag_container">
-                <p style="grid-column: 1/-1; text-align: center; color: #555; font-size: 0.9rem; padding: 20px;">Selecione a data acima...</p>
+                <p style="grid-column: 1/-1; text-align: center; color: #777; font-size: 1rem; padding: 20px;">Escolha a data acima...</p>
             </div>
             <input type="hidden" name="hora" id="hr_val" required>
 
@@ -125,7 +126,7 @@ app.get('/', (req, res) => {
         async function carregarHorarios() {
             const data = document.getElementById('data_select').value;
             const container = document.getElementById('ag_container');
-            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--gold); font-size:0.9rem; padding: 20px;">Verificando vagas...</p>';
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--gold); font-size:1rem; padding: 20px;">Verificando vagas...</p>';
             
             try {
                 const response = await fetch('/api/horarios-ocupados?data=' + data);
@@ -152,7 +153,7 @@ app.get('/', (req, res) => {
                     });
                 }
             } catch (err) {
-                container.innerHTML = '<p style="color:red; font-size:0.8rem;">Erro na conexão.</p>';
+                container.innerHTML = '<p style="color:red; font-size:0.9rem;">Erro na conexão.</p>';
             }
         }
     </script>
@@ -160,7 +161,7 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-// 4. CHECKOUT (DIRECIONANDO PARA OS SEUS LINKS ASAAS)
+// 4. CHECKOUT
 app.post('/api/checkout', async (req, res) => {
     const { duracao } = req.body;
     const linksAsaas = {
@@ -174,11 +175,11 @@ app.post('/api/checkout', async (req, res) => {
         const novaReserva = new Reserva(req.body);
         await novaReserva.save();
         res.send(`<body style="background:#050505; color:#fff; text-align:center; padding-top:150px; font-family:sans-serif;">
-            <h1 style="color:#d4af37; letter-spacing:10px; font-weight:100; font-size:3rem;">ŪNIKA</h1>
-            <p style="font-size:1.2rem;">Gerando seu checkout seguro...</p>
+            <h1 style="color:#d4af37; letter-spacing:10px; font-weight:100; font-size:3.5rem;">ŪNIKA</h1>
+            <p style="font-size:1.4rem;">Abrindo checkout seguro...</p>
             <script>setTimeout(() => { window.location.href='${linkFinal}'; }, 2000);</script>
         </body>`);
-    } catch (err) { res.status(500).send("Erro no servidor."); }
+    } catch (err) { res.status(500).send("Erro."); }
 });
 
 const PORT = process.env.PORT || 3000;
