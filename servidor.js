@@ -22,8 +22,8 @@ const Reserva = mongoose.model('Reserva', reservaSchema);
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { 
-        user: 'seu-email@gmail.com', 
-        pass: 'sua-senha-de-app-16-digitos' 
+        user: 'riostoragecube@gmail.com', 
+        pass: 'imzsysjsuihjdyay' 
     }
 });
 
