@@ -4,142 +4,135 @@ const nodemailer = require('nodemailer');
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ======================================================
-// 1. PÁGINA INICIAL (Resolve o erro "Cannot GET /")
+// 1. LAYOUT DA PÁGINA INICIAL E RESERVA (O SEU SITE)
 // ======================================================
 app.get('/', (req, res) => {
     res.send(`
-        <div style="text-align: center; font-family: sans-serif; padding-top: 100px; background-color: #f4f4f4; height: 100vh; margin: 0;">
-            <h1 style="letter-spacing: 8px; color: #000;">ŪNIKA</h1>
-            <div style="display: inline-block; padding: 20px; border: 2px solid #000; border-radius: 10px; background: #fff;">
-                <p style="color: green; font-weight: bold; font-size: 1.2rem; margin: 0;">✅ SERVIDOR ONLINE</p>
-                <p style="color: #666;">O cérebro do seu coworking está operando e conectado.</p>
+        <!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ŪNIKA | Coworking Autônomo</title>
+            <style>
+                body { font-family: 'Helvetica', sans-serif; margin: 0; background: #f4f4f4; color: #000; }
+                header { background: #000; color: #fff; padding: 40px 20px; text-align: center; }
+                h1 { letter-spacing: 10px; margin: 0; font-size: 2.5rem; }
+                .container { max-width: 800px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                .grid-servicos { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+                .card { border: 2px solid #000; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+                .card:hover { background: #000; color: #fff; }
+                form { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+                input, select, button { padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+                button { background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+                button:hover { background: #333; }
+                .status-badge { background: #e7f5e7; color: green; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-top: 10px; }
+            </style>
+        </head>
+        <body>
+            <header>
+                <h1>ŪNIKA</h1>
+                <p>CENTRO | RIO DE JANEIRO</p>
+                <div class="status-badge">● SISTEMA OPERACIONAL</div>
+            </header>
+            <div class="container">
+                <h2>Reserve seu Espaço</h2>
+                <p>Escolha o serviço e o horário para receber seu acesso via CPF.</p>
+                
+                <form action="/api/solicitar-reserva" method="POST">
+                    <label>Seu Nome Completo:</label>
+                    <input type="text" name="nome" required placeholder="Ex: João Silva">
+                    
+                    <label>Seu CPF (Apenas números - será sua chave de acesso):</label>
+                    <input type="text" name="doc" required placeholder="000.000.000-00">
+                    
+                    <label>E-mail (Para receber as instruções):</label>
+                    <input type="email" name="email" required placeholder="seu@email.com">
+
+                    <label>Serviço:</label>
+                    <select name="servico" required>
+                        <option value="Estação de Trabalho">Estação de Trabalho (Avulso)</option>
+                        <option value="Sala de Reunião">Sala de Reunião (Hora)</option>
+                        <option value="Escritório Privado">Escritório Privado (Diária)</option>
+                    </select>
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>Data:</label>
+                            <input type="date" name="data" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Horário:</label>
+                            <input type="time" name="hora" required>
+                        </div>
+                    </div>
+
+                    <button type="submit">Prosseguir para Pagamento</button>
+                </form>
             </div>
-            <p style="margin-top: 20px; font-size: 0.8rem; color: #888;">Centro, Rio de Janeiro - Ed. Marquês do Herval</p>
-        </div>
+        </body>
+        </html>
     `);
 });
 
 // ======================================================
-// 2. CONEXÃO COM O BANCO DE DADOS (MONGODB)
+// 2. LOGICA DE BACKEND (MONGODB + ASAAS + EMAIL)
 // ======================================================
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Banco de Dados UNIKA conectado!"))
-  .catch(err => console.error("❌ Erro ao conectar banco:", err));
+  .then(() => console.log("✅ Banco de Dados conectado!"))
+  .catch(err => console.error("❌ Erro no banco:", err));
 
-const reservaSchema = new mongoose.Schema({
-    nome: String,
-    email: String,
-    doc: String,
-    servico: String,
-    data: String,
-    hora: String,
-    status: { type: String, default: 'pendente' }
+const Reserva = mongoose.model('Reserva', new mongoose.Schema({
+    nome: String, email: String, doc: String, servico: String, data: String, hora: String, status: { type: String, default: 'pendente' }
+}));
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail', auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
 });
 
-const Reserva = mongoose.model('Reserva', reservaSchema);
-
-// ======================================================
-// 3. CONFIGURAÇÃO DO E-MAIL (NODEMAILER)
-// ======================================================
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+// Rota para processar o formulário acima
+app.post('/api/solicitar-reserva', async (req, res) => {
+    try {
+        const novaReserva = new Reserva(req.body);
+        await novaReserva.save();
+        // Aqui você redirecionaria para o link de checkout do Asaas
+        res.send(`<h1>Reserva Registrada!</h1><p>Estamos te enviando para o pagamento... (Integração com Checkout Asaas)</p>`);
+    } catch (err) {
+        res.status(500).send("Erro ao processar reserva.");
     }
 });
 
-async function enviarEmailConfirmacao(reserva) {
-    const isSalaReuniao = reserva.servico.toLowerCase().includes('reunião');
-    
-    const htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; color: #333;">
-            <div style="background-color: #000; padding: 30px; text-align: center;">
-                <h1 style="color: #fff; margin: 0; letter-spacing: 4px;">ŪNIKA</h1>
-                <p style="color: #888; font-size: 12px; text-transform: uppercase;">Coworking Autônomo • Rio de Janeiro</p>
-            </div>
-            <div style="padding: 30px;">
-                <p>Olá, <strong>${reserva.nome}</strong>!</p>
-                <p>Sua reserva foi confirmada. O seu espaço de produtividade no Rio já está garantido.</p>
-                
-                <div style="background-color: #f8f9fa; border-left: 4px solid #000; padding: 20px; margin: 20px 0;">
-                    <p style="margin: 0 0 10px 0;"><strong>🏢 Endereço:</strong> Av. Rio Branco, 185 (Ed. Marquês do Herval)</p>
-                    <p style="margin: 0 0 10px 0;"><strong>📅 Data:</strong> ${reserva.data}</p>
-                    <p style="margin: 0;"><strong>🕒 Horário:</strong> ${reserva.hora}</p>
-                </div>
-
-                <h3>🔑 Acesso e Climatização</h3>
-                <ul style="line-height: 1.6;">
-                    <li><strong>Sua Chave:</strong> Digite seu <strong>CPF (apenas números)</strong> no teclado da porta.</li>
-                    <li><strong>Ar-Condicionado:</strong> Você tem total controle da temperatura durante sua permanência.</li>
-                    ${isSalaReuniao ? '<li><strong>TV:</strong> Disponível na sala para apresentações e chamadas.</li>' : ''}
-                </ul>
-
-                <h3>✨ Serviços Inteligentes (Pagos à Parte)</h3>
-                <p>Ative via QR Code no local: Guarda-volumes inteligentes e Market 24h (cafés e bebidas).</p>
-
-                <h3>🤝 Colaboração</h3>
-                <p>Contamos com você para manter o espaço limpo para o próximo profissional.</p>
-
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="https://share.google/Z0QXBy4MO7JGUAd07" style="background-color: #000; color: #fff; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">📍 VER NO GOOGLE MAPS</a>
-                </div>
-            </div>
-        </div>
-    `;
-
-    await transporter.sendMail({
-        from: `"ŪNIKA Coworking" <${process.env.EMAIL_USER}>`,
-        to: reserva.email,
-        subject: `Tudo pronto para sua reserva na ŪNIKA, ${reserva.nome}! 🚀`,
-        html: htmlContent
-    });
-}
-
-// ======================================================
-// 4. WEBHOOK DO ASAAS (RECEBE O PAGAMENTO)
-// ======================================================
+// WEBHOOK DO ASAAS
 app.post('/api/webhook', async (req, res) => {
     const event = req.body;
-    console.log("🔔 Webhook recebido:", event.event);
-
     if (event.event === 'PAYMENT_RECEIVED' || event.event === 'PAYMENT_CONFIRMED') {
         const [doc, servico, data, hora] = event.payment.externalReference.split('|');
-        
-        const reserva = await Reserva.findOneAndUpdate(
-            { doc, data, hora },
-            { status: 'pago' },
-            { new: true }
-        );
-
-        if (reserva) {
-            console.log("✅ Pagamento confirmado para:", reserva.nome);
-            await enviarEmailConfirmacao(reserva);
-        }
+        const reserva = await Reserva.findOneAndUpdate({ doc, data, hora }, { status: 'pago' }, { new: true });
+        if (reserva) await enviarEmailConfirmacao(reserva);
     }
     res.status(200).send('OK');
 });
 
-// ======================================================
-// 5. API PARA O ESP32 (ABRE A PORTA)
-// ======================================================
+// API DA PORTA (ESP32)
 app.get('/api/verificar-acesso', async (req, res) => {
     const { cpf } = req.query;
     const hoje = new Date().toLocaleDateString('pt-BR');
-    
     const acesso = await Reserva.findOne({ doc: cpf, data: hoje, status: 'pago' });
-    
-    if (acesso) {
-        res.json({ autorizado: true, nome: acesso.nome });
-    } else {
-        res.json({ autorizado: false });
-    }
+    res.json(acesso ? { autorizado: true, nome: acesso.nome } : { autorizado: false });
 });
 
-// ======================================================
-// 6. INICIALIZAÇÃO
-// ======================================================
+async function enviarEmailConfirmacao(reserva) {
+    const htmlContent = `<div style="background:#000;color:#fff;padding:20px;"><h1>ŪNIKA</h1><p>Confirmado! Use seu CPF para entrar.</p></div>`;
+    await transporter.sendMail({
+        from: `"ŪNIKA" <${process.env.EMAIL_USER}>`,
+        to: reserva.email,
+        subject: `Reserva Confirmada!`,
+        html: htmlContent
+    });
+}
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
