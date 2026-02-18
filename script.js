@@ -1,4 +1,3 @@
-// Configurações Globais
 let userData = { nome: '', email: '', documento: '' };
 let selectedService = '';
 let selectedDate = '';
@@ -10,15 +9,13 @@ const precos = {
     reuniao: { 30: 50, 60: 90, 120: 150 } 
 };
 
-// PASSO 1: ACESSAR SERVIÇOS
 function startSession() {
-    console.log("Tentando iniciar sessão...");
     const nome = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const doc = document.getElementById('regDoc').value;
 
     if(!nome || !email || !doc) {
-        alert("Por favor, preencha todos os campos.");
+        alert("Preencha todos os campos.");
         return;
     }
 
@@ -27,11 +24,8 @@ function startSession() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('services-screen').classList.remove('hidden');
     document.getElementById('user-greeting').innerText = nome.split(' ')[0];
-    
-    window.scrollTo(0,0);
 }
 
-// PASSO 2: SELECIONAR SERVIÇO
 function selectService(id, name) {
     selectedService = id;
     document.getElementById('selected-title').innerText = "Reservar: " + name;
@@ -39,13 +33,13 @@ function selectService(id, name) {
     document.getElementById('checkout-area').scrollIntoView({ behavior: 'smooth' });
 }
 
-// PASSO 3: GERAR HORÁRIOS
 function loadAvailableTimes() {
     selectedDate = document.getElementById('booking-date').value;
     const grid = document.getElementById('slots-grid');
     if (!selectedDate) return;
 
     grid.innerHTML = '';
+    // Horários das 08h às 22h
     for (let h = 8; h <= 22; h++) {
         for (let m of ['00', '30']) {
             const time = `${h.toString().padStart(2, '0')}:${m}`;
@@ -64,15 +58,12 @@ function loadAvailableTimes() {
     }
 }
 
-// PASSO 4: DEFINIR TEMPO
 function setTime(min) {
     selectedTime = min;
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-    
     if(min === 30) document.getElementById('btn-30').classList.add('active');
     if(min === 60) document.getElementById('btn-60').classList.add('active');
     if(min === 120) document.getElementById('btn-120').classList.add('active');
-    
     updateSummary();
 }
 
@@ -84,7 +75,6 @@ function updateSummary() {
     document.getElementById('btn-pay').disabled = false;
 }
 
-// PASSO 5: GERAR PIX
 async function generatePix() {
     const btn = document.getElementById('btn-pay');
     btn.innerText = "Processando...";
@@ -106,15 +96,10 @@ async function generatePix() {
             document.getElementById('pix-area').classList.remove('hidden');
             document.getElementById('qr-code-img').src = `data:image/png;base64,${data.encodedImage}`;
         } else {
-            alert("Erro: " + (data.error || "Tente novamente"));
+            alert("Erro: " + data.error);
             btn.disabled = false;
-            btn.innerText = "Gerar QR Code de Acesso";
         }
-    } catch (e) {
-        alert("Erro de conexão com o servidor.");
-        btn.disabled = false;
-        btn.innerText = "Gerar QR Code de Acesso";
-    }
+    } catch (e) { alert("Erro de conexão."); btn.disabled = false; }
 }
 
 function resetUI() { location.reload(); }
