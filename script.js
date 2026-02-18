@@ -10,8 +10,9 @@ const precos = {
     reuniao: { 30: 50, 60: 90, 120: 150 } 
 };
 
-// PASSO 1: Cadastro Inicial
+// PASSO 1: ACESSAR SERVIÇOS
 function startSession() {
+    console.log("Tentando iniciar sessão...");
     const nome = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const doc = document.getElementById('regDoc').value;
@@ -26,43 +27,35 @@ function startSession() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('services-screen').classList.remove('hidden');
     document.getElementById('user-greeting').innerText = nome.split(' ')[0];
+    
+    window.scrollTo(0,0);
 }
 
-// PASSO 2: Seleção de Serviço
+// PASSO 2: SELECIONAR SERVIÇO
 function selectService(id, name) {
     selectedService = id;
     document.getElementById('selected-title').innerText = "Reservar: " + name;
     document.getElementById('checkout-area').classList.remove('hidden');
-    
-    // Rola suavemente até a agenda
     document.getElementById('checkout-area').scrollIntoView({ behavior: 'smooth' });
 }
 
-// PASSO 3: Carregar Agenda (Ativado ao mudar a data)
+// PASSO 3: GERAR HORÁRIOS
 function loadAvailableTimes() {
     selectedDate = document.getElementById('booking-date').value;
     const grid = document.getElementById('slots-grid');
-    
     if (!selectedDate) return;
 
-    grid.innerHTML = ''; // Limpa a grade anterior
-
-    // Gera horários das 08:00 às 22:00
+    grid.innerHTML = '';
     for (let h = 8; h <= 22; h++) {
         for (let m of ['00', '30']) {
             const time = `${h.toString().padStart(2, '0')}:${m}`;
             const div = document.createElement('div');
             div.className = 'slot';
             div.innerText = time;
-            
-            div.onclick = (e) => {
-                // Remove seleção visual de outros slots
+            div.onclick = function() {
                 document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-                // Seleciona o atual
-                e.target.classList.add('selected');
+                this.classList.add('selected');
                 selectedStartSlot = time;
-                
-                // Mostra a escolha de duração
                 document.getElementById('duration-selection').classList.remove('hidden');
                 updateSummary();
             };
@@ -71,32 +64,30 @@ function loadAvailableTimes() {
     }
 }
 
-// PASSO 4: Ajuste de Duração e Preço
+// PASSO 4: DEFINIR TEMPO
 function setTime(min) {
     selectedTime = min;
-    // Atualiza botões de tempo
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-    window.event.target.classList.add('active');
+    
+    if(min === 30) document.getElementById('btn-30').classList.add('active');
+    if(min === 60) document.getElementById('btn-60').classList.add('active');
+    if(min === 120) document.getElementById('btn-120').classList.add('active');
+    
     updateSummary();
 }
 
 function updateSummary() {
     if (!selectedStartSlot) return;
-
     const valor = precos[selectedService][selectedTime];
-    const resumo = `${selectedDate} às ${selectedStartSlot} (${selectedTime} min)`;
-    
-    document.getElementById('booking-summary').innerText = resumo;
+    document.getElementById('booking-summary').innerText = `${selectedDate} às ${selectedStartSlot} (${selectedTime} min)`;
     document.getElementById('display-price').innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
-    
-    // Libera o botão de pagamento
     document.getElementById('btn-pay').disabled = false;
 }
 
-// PASSO 5: Envio para o Asaas
+// PASSO 5: GERAR PIX
 async function generatePix() {
     const btn = document.getElementById('btn-pay');
-    btn.innerText = "Processando Reserva...";
+    btn.innerText = "Processando...";
     btn.disabled = true;
 
     try {
@@ -104,30 +95,25 @@ async function generatePix() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                servico: selectedService,
-                tempo: selectedTime,
-                data: selectedDate,
-                hora: selectedStartSlot,
-                nome: userData.nome,
-                email: userData.email,
-                documento: userData.documento
+                servico: selectedService, tempo: selectedTime,
+                data: selectedDate, hora: selectedStartSlot,
+                nome: userData.nome, email: userData.email, documento: userData.documento
             })
         });
-
         const data = await response.json();
-
         if (data.encodedImage) {
             document.getElementById('checkout-area').classList.add('hidden');
             document.getElementById('pix-area').classList.remove('hidden');
             document.getElementById('qr-code-img').src = `data:image/png;base64,${data.encodedImage}`;
         } else {
-            alert("Erro ao gerar pagamento: " + (data.error || "Tente novamente."));
+            alert("Erro: " + (data.error || "Tente novamente"));
             btn.disabled = false;
             btn.innerText = "Gerar QR Code de Acesso";
         }
     } catch (e) {
         alert("Erro de conexão com o servidor.");
         btn.disabled = false;
+        btn.innerText = "Gerar QR Code de Acesso";
     }
 }
 
