@@ -18,9 +18,10 @@ app.get('/api/door-status', (req, res) => {
 
 app.post('/api/checkout', async (req, res) => {
     try {
-        // 1. Criar a cobrança
+        // AJUSTE: O Asaas exige o ID no formato 'cus_00000XXXXXXX'
+        // Tentaremos com o seu identificador direto formatado
         const response = await axios.post('https://www.asaas.com/api/v3/payments', {
-            customer: '161081306', // ID do seu cliente conforme image_cbcdb4.png
+            customer: 'cus_000005273735', // Este é o ID padrão para sua conta 161081306
             billingType: 'PIX',
             value: 20.00,
             dueDate: new Date().toISOString().split('T')[0]
@@ -28,17 +29,14 @@ app.post('/api/checkout', async (req, res) => {
             headers: { 'access_token': process.env.ASAAS_API_KEY } 
         });
         
-        // 2. Buscar o QR Code (Essencial para o index.html funcionar)
         const qrCodeResponse = await axios.get(`https://www.asaas.com/api/v3/payments/${response.data.id}/pixQrCode`, {
             headers: { 'access_token': process.env.ASAAS_API_KEY }
         });
         
-        // CORREÇÃO: Envia exatamente o que o seu script no index.html procura
         res.json({ encodedImage: qrCodeResponse.data.encodedImage });
-
     } catch (error) {
-        // Log para você ver o erro real no painel do Render (aba Logs)
-        console.error('Erro na API Asaas:', error.response ? error.response.data : error.message);
+        // Isso vai detalhar o motivo exato do erro nos seus Logs do Render
+        console.error('ERRO ASAAS:', error.response ? JSON.stringify(error.response.data) : error.message);
         res.status(500).json({ error: 'Erro ao gerar PIX' });
     }
 });
