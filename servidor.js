@@ -16,7 +16,7 @@ const reservaSchema = new mongoose.Schema({
 });
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// 2. PAINEL DO CLIENTE (CORREÇÃO DE ACESSO E BOTÕES)
+// 2. PAINEL DO CLIENTE (EXIBIÇÃO INTELIGENTE RESTAURADA)
 app.get('/painel', async (req, res) => {
     const { cpf } = req.query;
     const hoje = new Date().toISOString().split('T')[0];
@@ -25,6 +25,10 @@ app.get('/painel', async (req, res) => {
     if (!reserva) {
         return res.send(`<body style="background:#050505;color:#d4af37;text-align:center;padding-top:100px;font-family:sans-serif;"><h1>ACESSO NEGADO</h1><p>Reserva não encontrada para hoje.</p><a href="/" style="color:#fff;">Voltar</a></body>`);
     }
+
+    const ePremium = reserva.servico.includes('Estação') || reserva.servico.includes('Sala');
+    const eMasc = reserva.servico.includes('Masc');
+    const eFem = reserva.servico.includes('Fem');
 
     res.send(`
 <!DOCTYPE html>
@@ -43,8 +47,9 @@ app.get('/painel', async (req, res) => {
         #timer { font-size: 3.5rem; font-weight: 300; color: var(--gold); letter-spacing: 5px; }
         h2 { font-weight: 400; font-size: 0.9rem; border-left: 3px solid var(--gold); padding-left: 15px; margin: 25px 0 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
         .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-iot { background: transparent; border: 1px solid #333; color: #fff; padding: 18px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; font-weight: 600; }
+        .btn-iot { background: transparent; border: 1px solid #333; color: #fff; padding: 18px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; font-weight: 600; width: 100%; }
         .btn-iot.active { border-color: var(--gold); color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .full-width { grid-column: 1 / -1; }
     </style>
 </head>
 <body>
@@ -56,6 +61,7 @@ app.get('/painel', async (req, res) => {
             <div style="color:var(--gold); font-size:0.8rem; margin-top:5px;">${reserva.servico.toUpperCase()}</div>
         </div>
 
+        ${ePremium ? `
         <h2>Automação da Sala</h2>
         <div class="control-grid">
             <button class="btn-iot" onclick="this.classList.toggle('active')">💡 Lâmpadas</button>
@@ -63,29 +69,17 @@ app.get('/painel', async (req, res) => {
             <button class="btn-iot" onclick="this.classList.toggle('active')">📺 Televisão</button>
             <button class="btn-iot" onclick="this.classList.toggle('active')">🔌 Tomadas</button>
         </div>
+        ` : ''}
 
-        <h2>Acessos Banheiro</h2>
+        <h2>Acessos Disponíveis</h2>
         <div class="control-grid">
-            <button id="btn_Masc" class="btn-iot" onclick="abrir('Masc')">🚹 Masculino</button>
-            <button id="btn_Fem" class="btn-iot" onclick="abrir('Fem')">🚺 Feminino</button>
+            ${(ePremium || eMasc) ? `<button class="btn-iot ${!ePremium ? 'full-width' : ''}" onclick="abrir('Masc')">🚹 Masculino</button>` : ''}
+            ${(ePremium || eFem) ? `<button class="btn-iot ${!ePremium ? 'full-width' : ''}" onclick="abrir('Fem')">🚺 Feminino</button>` : ''}
         </div>
-        <div style="font-size: 0.6rem; color:#444; text-align:center; margin-top:20px;">CLIENTE: ${reserva.nome.toUpperCase()}</div>
+        <div style="font-size: 0.6rem; color:#444; text-align:center; margin-top:30px;">CLIENTE: ${reserva.nome.toUpperCase()}</div>
     </div>
     <script>
-        const servico = "${reserva.servico}";
-        
-        function abrir(tipo) {
-            // Lógica Robusta: verifica se a palavra 'Estação' ou 'Sala' existe no nome do serviço
-            const ePremium = servico.includes('Estação') || servico.includes('Sala');
-            const eBanheiroEspecifico = (servico.includes('Masc') && tipo === 'Masc') || (servico.includes('Fem') && tipo === 'Fem');
-
-            if (ePremium || eBanheiroEspecifico) {
-                alert("Porta " + tipo + " Destrancada! Bem-vindo(a) à ŪNIKA.");
-            } else {
-                alert("Acesso Negado. Seu plano atual não inclui o banheiro " + tipo);
-            }
-        }
-
+        function abrir(tipo) { alert("Porta do Banheiro " + tipo + " destrancada!"); }
         function startTimer(duration, start) {
             const display = document.querySelector('#timer');
             const end = new Date(start).getTime() + (duration * 60000);
@@ -104,21 +98,22 @@ app.get('/painel', async (req, res) => {
 </html>`);
 });
 
-// 3. WEBHOOK E API (MANTIDOS)
+// 3. WEBHOOK ASAAS
 app.post('/webhook-asaas', async (req, res) => {
     const { event, payment } = req.body;
     if (event === 'PAYMENT_CONFIRMED' || event === 'PAYMENT_RECEIVED') {
-        await Reserva.findOneAndUpdate({ doc: payment.externalReference, status: 'pago' }, { status: 'pago' }, { sort: { _id: -1 } });
+        await Reserva.findOneAndUpdate({ doc: payment.externalReference, status: 'pendente' }, { status: 'pago' }, { sort: { _id: -1 } });
     }
     res.sendStatus(200);
 });
 
+// 4. API HORÁRIOS
 app.get('/api/horarios-ocupados', async (req, res) => {
     const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
     res.json(ocupados.map(r => r.hora));
 });
 
-// 4. PÁGINA INICIAL (COM AGENDA INTELIGENTE)
+// 5. PÁGINA INICIAL
 app.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -155,12 +150,10 @@ app.get('/', (req, res) => {
                 <div class="item" onclick="selecionarServico('Banheiro Fem', this)">BANHEIRO (F)</div>
             </div>
             <input type="hidden" name="servico" id="servico" required>
-
             <h2>02. Identificação</h2>
-            <input type="text" name="nome" placeholder="NOME COMPLETO" required>
+            <input type="text" name="nome" placeholder="NOME" required>
             <input type="text" name="doc" placeholder="CPF" required>
             <input type="email" name="email" placeholder="E-MAIL" required>
-
             <div id="secao-tempo">
                 <h2>03. Tempo Estimado</h2>
                 <div class="grid">
@@ -171,14 +164,12 @@ app.get('/', (req, res) => {
                 </div>
                 <input type="hidden" name="duracao" id="duracao">
             </div>
-
             <div id="secao-agenda">
                 <h2>04. Início</h2>
                 <input type="date" id="data" name="data" onchange="loadHr()" style="color-scheme: dark;">
                 <div class="agenda" id="agenda"></div>
                 <input type="hidden" name="hora" id="hora">
             </div>
-
             <button type="submit" class="btn-pay">Reservar Agora</button>
         </form>
     </div>
@@ -187,19 +178,15 @@ app.get('/', (req, res) => {
             document.querySelectorAll('.servico-selected').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected'); el.classList.add('servico-selected');
             document.getElementById('servico').value = val;
-
             const sagenda = document.getElementById('secao-agenda');
             const stempo = document.getElementById('secao-tempo');
-            
             if(val.includes('Banheiro')) {
-                sagenda.style.display = 'none';
-                stempo.style.display = 'none';
+                sagenda.style.display = 'none'; stempo.style.display = 'none';
                 document.getElementById('duracao').value = '60'; 
                 document.getElementById('data').value = new Date().toISOString().split('T')[0];
                 document.getElementById('hora').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
             } else {
-                sagenda.style.display = 'block';
-                stempo.style.display = 'block';
+                sagenda.style.display = 'block'; stempo.style.display = 'block';
             }
         }
         function sel(id, val, el) { 
@@ -229,7 +216,7 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-// 5. CHECKOUT
+// 6. CHECKOUT
 app.post('/api/checkout', async (req, res) => {
     const { doc, servico, duracao } = req.body;
     const links = {
