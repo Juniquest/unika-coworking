@@ -33,7 +33,7 @@ app.post('/api/checkout', async (req, res) => {
 
     try {
         const response = await axios.post('https://www.asaas.com/api/v3/payments', {
-            customer: 'cus_000005273735', // Seu ID de cliente
+            customer: 'cus_161081306', // Seu ID de cliente
             billingType: 'PIX',
             value: valorFinal,
             dueDate: new Date().toISOString().split('T')[0],
