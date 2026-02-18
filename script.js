@@ -20,7 +20,6 @@ function startSession() {
     }
 
     userData = { nome, email, documento: doc.replace(/\D/g, '') };
-
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('services-screen').classList.remove('hidden');
     document.getElementById('user-greeting').innerText = nome.split(' ')[0];
@@ -39,7 +38,6 @@ function loadAvailableTimes() {
     if (!selectedDate) return;
 
     grid.innerHTML = '';
-    // Horários das 08h às 22h
     for (let h = 8; h <= 22; h++) {
         for (let m of ['00', '30']) {
             const time = `${h.toString().padStart(2, '0')}:${m}`;
