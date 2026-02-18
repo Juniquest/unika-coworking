@@ -21,7 +21,7 @@ const Reserva = mongoose.model('Reserva', reservaSchema);
 // CONFIGURAÇÃO DE E-MAIL (Preencha para ativar os envios)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: { user: 'seu-email@gmail.com', pass: 'sua-senha-de-app' }
+    auth: { user: 'riostoragecube@gmail.com', pass: 'imzsysjsuihjdyay' }
 });
 
 // 2. MONITORAMENTO DE TEMPO (CRON JOB)
@@ -52,7 +52,7 @@ cron.schedule('* * * * *', async () => {
 
 function enviarEmail(email, nome, mensagem) {
     const mailOptions = {
-        from: 'ŪNIKA <seu-email@gmail.com>',
+        from: 'ŪNIKA <riostoragecube@gmail.com>',
         to: email,
         subject: 'Aviso ŪNIKA',
         text: `Olá ${nome}, ${mensagem}`
