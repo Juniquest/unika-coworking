@@ -9,13 +9,13 @@ app.use(express.static(__dirname));
 
 const ASAAS_URL = 'https://www.asaas.com/api/v3';
 
-// Simulação de banco de dados (Para real, use MongoDB)
+// Simulação de banco de dados
 let reservasConfirmadas = [];
 
+// ROTA DE CHECKOUT
 app.post('/api/checkout', async (req, res) => {
     const { servico, tempo, data, hora, nome, email, documento } = req.body;
 
-    // 1. Verificar Conflito (Simples)
     const conflito = reservasConfirmadas.find(r => r.data === data && r.hora === hora && r.servico === servico);
     if(conflito) return res.status(400).json({ error: "Horário já ocupado!" });
 
@@ -25,30 +25,40 @@ app.post('/api/checkout', async (req, res) => {
     try {
         const headers = { 'access_token': process.env.ASAAS_API_KEY, 'Content-Type': 'application/json' };
 
-        // PASSO 1: Criar Cliente
         const cli = await axios.post(`${ASAAS_URL}/customers`, { name: nome, email, cpfCnpj: documento }, { headers });
 
-        // PASSO 2: Criar Cobrança
         const pag = await axios.post(`${ASAAS_URL}/payments`, {
             customer: cli.data.id,
             billingType: 'PIX',
             value: valor,
             dueDate: new Date().toISOString().split('T')[0],
             description: `ŪNIKA: ${servico} (${data} ${hora})`,
+            externalReference: `${servico}|${data}|${hora}`, // Referência para o WebHook
             postalService: false
         }, { headers });
 
-        // PASSO 3: QR Code
         const qr = await axios.get(`${ASAAS_URL}/payments/${pag.data.id}/pixQrCode`, { headers });
-
-        // Salva na lista temporária (No MongoDB isso seria persistente)
-        reservasConfirmadas.push({ servico, data, hora });
 
         res.json({ encodedImage: qr.data.encodedImage });
 
     } catch (e) {
         res.status(500).json({ error: "Erro no Asaas" });
     }
+});
+
+// ROTA DE WEBHOOK (Recebe o aviso de pagamento do Asaas)
+app.post('/api/webhook', (req, res) => {
+    const event = req.body;
+    
+    if (event.event === 'PAYMENT_RECEIVED' || event.event === 'PAYMENT_CONFIRMED') {
+        const [servico, data, hora] = event.payment.externalReference.split('|');
+        
+        // Aqui a reserva é oficialmente validada
+        reservasConfirmadas.push({ servico, data, hora, status: 'pago' });
+        console.log(`✅ Pagamento confirmado para: ${servico} em ${data} às ${hora}`);
+    }
+    
+    res.status(200).send('OK');
 });
 
 const PORT = process.env.PORT || 10000;
