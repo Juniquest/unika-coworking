@@ -152,5 +152,10 @@ app.post('/webhook-asaas', async (req, res) => {
     }
     res.sendStatus(200);
 });
-
+// ROTA TEMPORÁRIA PARA TESTAR E-MAIL AGORA
+app.get('/testar-email', (req, res) => {
+    const seuEmail = "COLOQUE_AQUI_SEU_EMAIL_PESSOAL@gmail.com";
+    enviarEmail(seuEmail, "Cliente de Teste", "Este é um teste de luxo da ŪNIKA. Se você recebeu isso, sua configuração está perfeita!");
+    res.send("<h1>Comando enviado!</h1><p>Verifique sua caixa de entrada (e o Spam).</p>");
+});
 app.listen(process.env.PORT || 3000);
