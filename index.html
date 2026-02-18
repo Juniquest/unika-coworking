@@ -75,9 +75,9 @@
                 <div id="duration-selection" class="hidden">
                     <label style="display:block; margin-top:20px;">Duração</label>
                     <div class="time-grid" style="display: flex; gap: 10px;">
-                        <button class="time-btn active" onclick="setTime(30)">30 min</button>
-                        <button class="time-btn" onclick="setTime(60)">60 min</button>
-                        <button class="time-btn" onclick="setTime(120)">120 min</button>
+                        <button class="time-btn active" id="btn-30" onclick="setTime(30)">30 min</button>
+                        <button class="time-btn" id="btn-60" onclick="setTime(60)">60 min</button>
+                        <button class="time-btn" id="btn-120" onclick="setTime(120)">120 min</button>
                     </div>
                 </div>
 
@@ -97,7 +97,7 @@
             <div id="pix-area" class="pix-container hidden" style="text-align: center;">
                 <h3>Acesso quase pronto!</h3>
                 <p>Pague o PIX para confirmar.</p>
-                <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto;">
+                <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto; display: block; border: 10px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <button class="btn-primary" onclick="resetUI()">Finalizar</button>
             </div>
         </section>
