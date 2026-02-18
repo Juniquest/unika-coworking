@@ -1,9 +1,9 @@
 :root {
-    --bg: #ffffff;
-    --card-bg: #f5f5f7;
+    --bg: #f2f2f7; /* Um cinza claro para o fundo geral */
+    --card-bg: #ffffff;
     --text: #1d1d1f;
     --accent: #0071e3;
-    --shadow: 0 8px 30px rgba(0,0,0,0.12);
+    --shadow: 0 8px 30px rgba(0,0,0,0.08);
 }
 
 body {
@@ -13,26 +13,72 @@ body {
     margin: 0;
 }
 
-.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.container { 
+    max-width: 1100px; 
+    margin: 0 auto; 
+    padding: 0 20px; 
+}
 
-header { padding: 40px 0; border-bottom: 1px solid #d2d2d7; text-align: center; }
-#logo { font-size: 32px; font-weight: 600; letter-spacing: -1px; }
+header { 
+    padding: 40px 0; 
+    border-bottom: 1px solid #d2d2d7; 
+    text-align: center; 
+    background-color: var(--card-bg); /* Fundo branco para o header */
+}
 
+#logo { 
+    font-size: 32px; 
+    font-weight: 600; 
+    letter-spacing: -1px; 
+    margin: 0;
+}
+header p { color: #6e6e73; margin-top: 5px; }
+
+/* ESTILO DA TELA DE AUTENTICAÇÃO COM IMAGEM */
+#auth-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px); /* Ajusta a altura para centralizar bem */
+    padding: 30px 0;
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                url('https://images.unsplash.com/photo-1599651034336-ac09df8c4992?auto=format&fit=crop&w=1400&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 25px; /* Bordas arredondadas para a seção */
+    margin: 30px auto;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.9); /* Fundo semi-transparente branco */
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+}
+
+
+/* ESTILOS EXISTENTES (HERO, CARDS, CHECKOUT) */
 .hero {
-    padding: 100px 20px;
+    padding: 60px 20px;
     text-align: center;
     background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), 
                 url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80');
     background-size: cover;
     background-position: center;
-    border-radius: 0 0 40px 40px;
-    margin-bottom: 50px;
+    border-radius: 20px;
+    margin: 30px auto;
 }
+.hero h2 { font-size: 40px; margin-bottom: 10px; color: var(--text); }
+.hero p { font-size: 18px; color: #6e6e73; }
 
 .grid-services {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
+    margin-bottom: 50px;
 }
 
 .card {
@@ -44,7 +90,11 @@ header { padding: 40px 0; border-bottom: 1px solid #d2d2d7; text-align: center; 
     border: 1px solid transparent;
 }
 
-.card:hover { transform: translateY(-10px); box-shadow: var(--shadow); border-color: var(--accent); }
+.card:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15); 
+    border-color: var(--accent); 
+}
 
 .card-img {
     height: 200px;
@@ -52,16 +102,94 @@ header { padding: 40px 0; border-bottom: 1px solid #d2d2d7; text-align: center; 
     background-position: center;
 }
 
-/* Imagens Automáticas */
 .img-estacao { background-image: url('https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=600&q=80'); }
 .img-reuniao { background-image: url('https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=600&q=80'); }
 .img-banheiro { background-image: url('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80'); }
 
 .card-content { padding: 25px; }
-.badge { background: #e8e8ed; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--accent); }
 
-.checkout-card { background: white; padding: 40px; border-radius: 30px; box-shadow: var(--shadow); max-width: 500px; margin: 40px auto; }
-.hidden { display: none; }
-.time-btn { padding: 12px; border: 1px solid #d2d2d7; background: white; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-.time-btn.active { background: var(--text); color: white; }
-.btn-primary { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+.badge { 
+    background: #e8e8ed; 
+    padding: 4px 12px; 
+    border-radius: 20px; 
+    font-size: 12px; 
+    font-weight: 600; 
+    color: var(--accent); 
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.checkout-card, .pix-container { 
+    background: var(--card-bg); 
+    padding: 40px; 
+    border-radius: 25px; 
+    box-shadow: var(--shadow); 
+    max-width: 500px; 
+    margin: 40px auto; 
+    text-align: center;
+}
+
+.hidden { display: none !important; }
+
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-group label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #1d1d1f; }
+.input-group input { 
+    width: 100%; 
+    padding: 14px; 
+    border-radius: 12px; 
+    border: 1px solid #d2d2d7; 
+    font-size: 16px; 
+    box-sizing: border-box; 
+    color: var(--text);
+    background-color: #f5f5f7;
+}
+.input-group input:focus { border-color: #0071e3; outline: none; background-color: #ffffff; }
+
+.time-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.time-btn { 
+    padding: 12px; 
+    border: 1px solid #d2d2d7; 
+    background: white; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    font-weight: 600;
+    color: #48484a;
+}
+
+.time-btn.active { 
+    background: var(--text); 
+    color: white; 
+    border-color: var(--text);
+}
+
+.btn-primary { 
+    width: 100%; 
+    padding: 18px; 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    border-radius: 15px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    margin-top: 20px; 
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+}
+.btn-primary:hover { background-color: #005bb5; }
+
+.btn-cancel {
+    width: 100%;
+    background: none;
+    border: none;
+    margin-top: 15px;
+    cursor: pointer;
+    color: #86868b;
+    font-size: 15px;
+}
