@@ -5,15 +5,14 @@ const path = require('path');
 
 app.use(express.json());
 
-// Faz o servidor encontrar o index.html na raiz do projeto
+// IMPORTANTE: Faz o servidor achar os arquivos na mesma pasta
 app.use(express.static(__dirname));
 
-// Rota para abrir o seu site principal (corrige o erro "Cannot GET /")
+// IMPORTANTE: Rota que abre o site principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rota para o ESP32 checar se a porta deve abrir
 let doorStatus = "FECHADO";
 
 app.get('/api/door-status', (req, res) => {
@@ -23,9 +22,8 @@ app.get('/api/door-status', (req, res) => {
 
 app.post('/api/checkout', async (req, res) => {
     try {
-        // 1. Cria a cobrança no Asaas com o seu ID de cliente real
         const response = await axios.post('https://www.asaas.com/api/v3/payments', {
-            customer: 'cus_161081306', 
+            customer: 'cus_161081306', // ID do cliente que vimos na sua tela
             billingType: 'PIX',
             value: 20.00,
             dueDate: new Date().toISOString().split('T')[0]
@@ -33,7 +31,6 @@ app.post('/api/checkout', async (req, res) => {
             headers: { 'access_token': process.env.ASAAS_API_KEY } 
         });
         
-        // 2. Busca o QR Code e a imagem para exibir no site
         const qrCodeResponse = await axios.get(`https://www.asaas.com/api/v3/payments/${response.data.id}/pixQrCode`, {
             headers: { 'access_token': process.env.ASAAS_API_KEY }
         });
