@@ -65,4 +65,3 @@ header { padding: 40px 0; border-bottom: 1px solid #d2d2d7; text-align: center; 
 .time-btn { padding: 12px; border: 1px solid #d2d2d7; background: white; border-radius: 12px; cursor: pointer; transition: 0.2s; }
 .time-btn.active { background: var(--text); color: white; }
 .btn-primary { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; }
-}
