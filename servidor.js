@@ -26,65 +26,64 @@ const transporter = nodemailer.createTransport({
 
 // 2. MONITORAMENTO DE TEMPO (CRON JOB)
 cron.schedule('* * * * *', async () => {
-    const agora = new Date();
-    const hoje = agora.toISOString().split('T')[0];
-    const reservas = await Reserva.find({ data: hoje, status: 'pago' });
+    try {
+        const agora = new Date();
+        const hoje = agora.toISOString().split('T')[0];
+        const reservas = await Reserva.find({ data: hoje, status: 'pago' });
 
-    for (const res of reservas) {
-        if (!res.hora || res.servico.includes('Banheiro')) continue;
-        const [h, m] = res.hora.split(':');
-        const dataFim = new Date(`${res.data}T${h}:${m}:00`);
-        dataFim.setMinutes(dataFim.getMinutes() + parseInt(res.duracao));
-        const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
+        for (const res of reservas) {
+            if (!res.hora || res.servico.includes('Banheiro')) continue;
+            const [h, m] = res.hora.split(':');
+            const dataFim = new Date(`${res.data}T${h}:${m}:00`);
+            dataFim.setMinutes(dataFim.getMinutes() + parseInt(res.duracao));
+            const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
 
-        if (tempoRestanteMin === 10) {
-            enviarEmail(res.email, res.nome, "Sua sessão na ŪNIKA encerra em 10 minutos.");
+            if (tempoRestanteMin === 10) {
+                enviarEmail(res.email, res.nome, "Sua sessão encerra em 10 minutos.");
+            }
+            if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
+                await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
+                enviarEmail(res.email, res.nome, "Sua sessão encerrou.");
+            }
         }
-        if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
-            await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
-            enviarEmail(res.email, res.nome, "Sua sessão encerrou.");
-        }
-    }
+    } catch (e) { console.error("Erro Cron:", e); }
 });
 
 function enviarEmail(email, nome, mensagem) {
-    const mailOptions = {
-        from: 'ŪNIKA | Experiência Digital <riostoragecube@gmail.com>',
-        to: email,
-        subject: 'Aviso ŪNIKA',
-        text: `Olá, ${nome}.\n\n${mensagem}`
-    };
+    const mailOptions = { from: 'ŪNIKA <riostoragecube@gmail.com>', to: email, subject: 'Aviso ŪNIKA', text: `Olá ${nome}, ${mensagem}` };
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS
+// 3. ESTILOS (PAINEL FULL IOT)
 const style = `
     :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
-    h1 { letter-spacing: 12px; font-weight: 300; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
-    .container { width: 90%; max-width: 500px; background: var(--card); padding: 40px; border: 1px solid #222; border-radius: 4px; margin-top: 30px; text-align: left; }
-    input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 15px 0; margin-bottom: 20px; font-size: 1rem; outline: none; }
-    .btn-gold { width: 100%; padding: 20px; background: transparent; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; font-weight: 600; letter-spacing: 3px; cursor: pointer; text-decoration: none; display: block; text-align: center; margin-top: 20px; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; text-align: center; }
+    .container { width: 90%; max-width: 500px; background: var(--card); padding: 30px; border: 1px solid #222; border-radius: 8px; margin-top: 20px; }
+    .status-bar { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.7rem; background: #000; padding: 12px; border: 1px solid #222; border-radius: 4px; letter-spacing: 1px; }
+    .timer-box { border: 1px solid var(--gold); padding: 25px; margin-bottom: 25px; border-radius: 4px; }
+    #timer { font-size: 3.5rem; color: var(--gold); letter-spacing: 5px; font-weight: bold; }
+    .iot-group { margin-bottom: 20px; text-align: left; }
+    .label-iot { font-size: 0.6rem; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; display: block; margin-bottom: 8px; }
+    .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-iot { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; border-radius: 4px; transition: 0.3s; }
+    .btn-iot:active { background: var(--gold); color: #000; }
+    .btn-gold { width: 100%; padding: 20px; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; text-decoration: none; display: block; margin-top: 20px; font-weight: 600; letter-spacing: 2px; cursor: pointer; background: transparent; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .item { border: 1px solid #333; padding: 15px; text-align: center; cursor: pointer; font-size: 0.8rem; }
-    .selected { border-color: var(--gold); background: rgba(212,175,55,0.1); }
+    .item { border: 1px solid #333; padding: 15px; text-align: center; cursor: pointer; font-size: 0.8rem; border-radius: 4px; }
+    .selected { border-color: var(--gold); background: rgba(212,175,55,0.1); color: var(--gold); }
     .agenda { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-    .timer-box { border: 1px solid var(--gold); padding: 20px; margin-bottom: 20px; text-align: center; }
-    #timer { font-size: 3.5rem; color: var(--gold); letter-spacing: 5px; }
-    .btn-iot { width: 100%; background: transparent; border: 1px solid #333; color: #fff; padding: 20px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; }
+    input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 12px 0; margin-bottom: 15px; outline: none; text-align: center; }
 `;
 
 // 4. ROTAS
-app.get('/', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><a href="/reservar" class="btn-gold">Reservar Espaço</a><a href="/login" class="btn-gold">Acessar Meu Painel</a></body></html>`);
-});
+app.get('/', (req, res) => { res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><a href="/reservar" class="btn-gold">Reservar</a><a href="/login" class="btn-gold">Painel</a></body></html>`); });
 
 app.get('/login', (req, res) => {
     res.send(`<html><head><style>${style}</style></head><body><h1>LOGIN</h1><div class="container"><form action="/painel" method="GET"><input type="text" name="cpf" placeholder="DIGITE SEU CPF" required><button type="submit" class="btn-gold">ENTRAR</button></form></div></body></html>`);
 });
 
 app.get('/reservar', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>RESERVAR</h1><div class="container"><form action="/api/checkout" method="POST">
+    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="container"><form action="/api/checkout" method="POST">
     <div class="grid"><div class="item" onclick="sel('Estação Individual', this)">ESTAÇÃO</div><div class="item" onclick="sel('Sala de Reunião', this)">SALA</div><div class="item" onclick="sel('Banheiro Masc', this)">BANHEIRO (M)</div><div class="item" onclick="sel('Banheiro Fem', this)">BANHEIRO (F)</div></div>
     <input type="hidden" name="servico" id="servico" required>
     <input type="text" name="nome" placeholder="NOME COMPLETO" required>
@@ -96,16 +95,16 @@ app.get('/reservar', (req, res) => {
         <input type="hidden" name="hora" id="hora">
     </div>
     <input type="hidden" name="duracao" id="duracao" value="120">
-    <button type="submit" class="btn-gold">Ir para Pagamento</button></form></div>
+    <button type="submit" class="btn-gold">PAGAR R$ 7,00 / R$ 120,00</button></form></div>
     <script>
         function sel(v,e){
             document.querySelectorAll('.item').forEach(x=>x.classList.remove('selected'));
             e.classList.add('selected');
             document.getElementById('servico').value=v;
-            const isBanheiro = v.includes('Banheiro');
-            document.getElementById('box-agenda').style.display = isBanheiro ? 'none' : 'block';
-            if(isBanheiro) { 
-                document.getElementById('hora').value = "00:00"; 
+            const isB = v.includes('Banheiro');
+            document.getElementById('box-agenda').style.display = isB ? 'none' : 'block';
+            if(isB) { 
+                document.getElementById('hora').value = "00:00";
                 document.getElementById('data').value = new Date().toISOString().split('T')[0];
                 document.getElementById('duracao').value = "60";
             }
@@ -137,21 +136,48 @@ app.get('/painel', async (req, res) => {
     const isMasc = reserva.servico.includes('Masc');
     const isFem = reserva.servico.includes('Fem');
 
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="container">
-    <div class="timer-box"><div id="timer">${isPremium ? '--:--' : 'ACESSO LIBERADO'}</div></div>
-    <div style="display:flex; flex-direction:column; gap:10px;">
-        ${isPremium ? '<button class="btn-iot" onclick="alert(\'Acesso Masc Liberado\')">🚹 Abrir Banheiro Masc</button><button class="btn-iot" onclick="alert(\'Acesso Fem Liberado\')">🚺 Abrir Banheiro Fem</button>' : ''}
-        ${isMasc ? '<button class="btn-iot" onclick="alert(\'Acesso Masculino Liberado\')">🚹 Abrir Banheiro Masculino</button>' : ''}
-        ${isFem ? '<button class="btn-iot" onclick="alert(\'Acesso Feminino Liberado\')">🚺 Abrir Banheiro Feminino</button>' : ''}
-    </div></div>
+    res.send(`<html><head><style>${style}</style></head><body>
+    <h1>ŪNIKA</h1>
+    <div class="container">
+        <div class="status-bar">
+            <span>🚹 MASC: <b style="color:#00ff00">LIVRE</b></span>
+            <span>🚺 FEM: <b style="color:#00ff00">LIVRE</b></span>
+        </div>
+
+        <div class="timer-box">
+            <div id="timer">${isPremium ? '--:--' : 'ACESSO LIBERADO'}</div>
+        </div>
+
+        ${isPremium ? `
+        <div class="iot-group"><span class="label-iot">Ar Condicionado</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Ar Condicionado: ON/OFF')">Power</button>
+            <button class="btn-iot" onclick="alert('Temperatura Ajustada para 22°C')">Temp 22°C</button>
+        </div></div>
+        <div class="iot-group"><span class="label-iot">Smart TV</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Smart TV: ON/OFF')">Power</button>
+            <button class="btn-iot" onclick="alert('Volume Ajustado')">Volume +/-</button>
+        </div></div>
+        <div class="iot-group"><span class="label-iot">Iluminação e Energia</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Luzes da Sala: ON/OFF')">Luzes</button>
+            <button class="btn-iot" onclick="alert('Tomadas Ativadas')">Tomadas</button>
+        </div></div>
+        <div class="iot-group"><span class="label-iot">Banheiros (Cortesias)</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Banheiro Masculino Liberado')">Abrir Masc</button>
+            <button class="btn-iot" onclick="alert('Banheiro Feminino Liberado')">Abrir Fem</button>
+        </div></div>
+        ` : ''}
+
+        ${isMasc ? `<div class="iot-group"><span class="label-iot">Acesso</span><button class="btn-gold" onclick="alert('Porta Banheiro Masculino Liberada')">ABRIR BANHEIRO MASC</button></div>` : ''}
+        ${isFem ? `<div class="iot-group"><span class="label-iot">Acesso</span><button class="btn-gold" onclick="alert('Porta Banheiro Feminino Liberada')">ABRIR BANHEIRO FEM</button></div>` : ''}
+    </div>
     <script>
         if(${isPremium}){
             function start(){
                 const [h, m] = "${reserva.hora}".split(':');
                 const fim = new Date("${reserva.data}T" + h + ":" + m + ":00").getTime() + (${reserva.duracao} * 60000);
-                setInterval(() => {
+                const x = setInterval(() => {
                     const dist = fim - new Date().getTime();
-                    if(dist < 0) { document.getElementById('timer').innerHTML = "FIM"; return; }
+                    if(dist < 0) { clearInterval(x); document.getElementById('timer').innerHTML = "FIM"; return; }
                     const mm = Math.floor((dist % 3600000) / 60000);
                     const ss = Math.floor((dist % 60000) / 1000);
                     document.getElementById('timer').innerHTML = mm + ":" + (ss < 10 ? "0" + ss : ss);
@@ -163,15 +189,10 @@ app.get('/painel', async (req, res) => {
 
 app.post('/api/checkout', async (req, res) => {
     const { servico, doc } = req.body;
-    let linkAsaas = "https://www.asaas.com/c/astpmmsj1m8b7wct"; // Link padrão Sala/Estação
-    
-    if(servico === 'Banheiro Masc') linkAsaas = "https://www.asaas.com/c/xx8y9j7aelqt1u1z";
-    if(servico === 'Banheiro Fem') linkAsaas = "https://www.asaas.com/c/hy4cb2sz0ya4mmrd";
-
-    try { 
-        await new Reserva(req.body).save(); 
-        res.send(`<script>location.href="${linkAsaas}?externalReference=${doc}";</script>`); 
-    } catch (e) { res.send("Erro."); }
+    let link = "https://www.asaas.com/c/astpmmsj1m8b7wct";
+    if(servico === 'Banheiro Masc') link = "https://www.asaas.com/c/xx8y9j7aelqt1u1z";
+    if(servico === 'Banheiro Fem') link = "https://www.asaas.com/c/hy4cb2sz0ya4mmrd";
+    try { await new Reserva(req.body).save(); res.send(`<script>location.href="${link}?externalReference=${doc}";</script>`); } catch (e) { res.send("Erro."); }
 });
 
 app.get('/api/horarios-ocupados', async (req, res) => {
