@@ -18,13 +18,16 @@ const reservaSchema = new mongoose.Schema({
 });
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// CONFIGURAÇÃO DE E-MAIL (Preencha para ativar os envios)
+// CONFIGURAÇÃO DE E-MAIL (Preencha com seu Gmail e Senha de App de 16 dígitos)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: { user: 'riostoragecube@gmail.com', pass: 'imzsysjsuihjdyay' }
+    auth: { 
+        user: 'seu-email@gmail.com', 
+        pass: 'sua-senha-de-app-16-digitos' 
+    }
 });
 
-// 2. MONITORAMENTO DE TEMPO (CRON JOB)
+// 2. MONITORAMENTO DE TEMPO (CRON JOB) - Roda a cada 1 minuto
 cron.schedule('* * * * *', async () => {
     const agora = new Date();
     const hoje = agora.toISOString().split('T')[0];
@@ -49,31 +52,18 @@ cron.schedule('* * * * *', async () => {
         }
     });
 });
-        // Notificação por E-mail faltando 10 minutos
-        if (tempoRestanteMin === 10) {
-            enviarEmail(res.email, res.nome, "Seu tempo na ŪNIKA encerra em 10 minutos.");
-        }
-
-        // Encerramento total
-        if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
-            console.log(`[SHUTDOWN] ${res.servico} - ${res.nome}`);
-            enviarEmail(res.email, res.nome, "Seu tempo encerrou. Os equipamentos foram desligados.");
-            await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
-        }
-    });
-});
 
 function enviarEmail(email, nome, mensagem) {
     const mailOptions = {
-        from: 'ŪNIKA <riostoragecube@gmail.com>',
+        from: 'ŪNIKA | Experiência Digital <seu-email@gmail.com>',
         to: email,
-        subject: 'Aviso ŪNIKA',
-        text: `Olá ${nome}, ${mensagem}`
+        subject: 'ŪNIKA | Informação importante sobre sua sessão',
+        text: `Olá, ${nome}.\n\n${mensagem}\n\nAtenciosamente,\nEquipe ŪNIKA`
     };
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS E PÁGINAS (LAYOUT PRESERVADO)
+// 3. ESTILOS (LAYOUT PRESERVADO)
 const style = `
     :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
@@ -85,6 +75,7 @@ const style = `
     .btn-outline { color: #666; text-decoration: none; font-size: 0.8rem; letter-spacing: 1px; margin-top: 20px; display: inline-block; }
 `;
 
+// 4. ROTAS
 app.get('/', (req, res) => {
     res.send(`<html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="slogan">Onde o luxo encontra a produtividade</div><div class="container" style="background:transparent;border:none;"><a href="/reservar" class="btn-gold">Reservar Espaço</a><a href="/login" class="btn-gold" style="margin-top:20px;">Acessar Meu Painel</a></div></body></html>`);
 });
@@ -127,7 +118,7 @@ app.get('/painel', async (req, res) => {
                 const dist=end-new Date().getTime(); 
                 if(dist < 0){ 
                     display.innerHTML="FIM"; 
-                    if(dist > -5000) alert("SEU TEMPO ENCERROU. TUDO SERÁ DESLIGADO.");
+                    if(dist > -5000) alert("SUA SESSÃO NA ŪNIKA ENCERROU. TUDO SERÁ DESLIGADO.");
                     return; 
                 }
                 const m = Math.floor((dist % 3600000) / 60000);
