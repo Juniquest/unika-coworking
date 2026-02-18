@@ -21,100 +21,93 @@ const Reserva = mongoose.model('Reserva', reservaSchema);
 // CONFIGURAÇÃO DE E-MAIL
 const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: { 
-        user: 'riostoragecube@gmail.com', 
-        pass: 'imzsysjsuihjdyay' 
-    }
+    auth: { user: 'riostoragecube@gmail.com', pass: 'imzsysjsuihjdyay' }
 });
 
 // 2. MONITORAMENTO DE TEMPO (CRON JOB)
 cron.schedule('* * * * *', async () => {
-    const agora = new Date();
-    const hoje = agora.toISOString().split('T')[0];
-    const reservas = await Reserva.find({ data: hoje, status: 'pago' });
+    try {
+        const agora = new Date();
+        const hoje = agora.toISOString().split('T')[0];
+        const reservas = await Reserva.find({ data: hoje, status: 'pago' });
 
-    // Correção do loop: o async deve estar aqui para o await funcionar internamente
-    for (const res of reservas) {
-        const [h, m] = res.hora.split(':');
-        const dataInicio = new Date(`${res.data}T${h}:${m}:00`);
-        const dataFim = new Date(dataInicio.getTime() + (parseInt(res.duracao) * 60000));
-        const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
+        for (const res of reservas) {
+            const [h, m] = res.hora.split(':');
+            const dataInicio = new Date(`${res.data}T${h}:${m}:00`);
+            const dataFim = new Date(dataInicio.getTime() + (parseInt(res.duracao) * 60000));
+            const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
 
-        if (tempoRestanteMin === 10) {
-            enviarEmail(res.email, res.nome, "Informamos que sua sessão na ŪNIKA encerra em 10 minutos. Sinta-se à vontade para organizar seus pertences.");
+            if (tempoRestanteMin === 10) {
+                enviarEmail(res.email, res.nome, "Sua sessão encerra em 10 minutos.");
+            }
+            if (tempoRestanteMin <= 0) {
+                await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
+                enviarEmail(res.email, res.nome, "Sua sessão foi encerrada.");
+            }
         }
-
-        if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
-            console.log(`[SHUTDOWN] ${res.servico}`);
-            enviarEmail(res.email, res.nome, "Sua sessão foi encerrada e os equipamentos foram desligados. Agradecemos por escolher a ŪNIKA.");
-            await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
-        }
-    }
+    } catch (e) { console.log("Erro no Cron:", e); }
 });
 
 function enviarEmail(email, nome, mensagem) {
     const mailOptions = {
-        from: 'ŪNIKA | Experiência Digital <riostoragecube@gmail.com>',
+        from: 'ŪNIKA <riostoragecube@gmail.com>',
         to: email,
-        subject: 'ŪNIKA | Informação importante sobre sua sessão',
-        text: `Olá, ${nome}.\n\n${mensagem}\n\nAtenciosamente,\nEquipe ŪNIKA`
+        subject: 'Aviso ŪNIKA',
+        text: `Olá ${nome}, ${mensagem}`
     };
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS E PÁGINAS (CORREÇÃO DO "CANNOT GET")
+// 3. ESTILOS CSS
 const style = `
-    :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
-    h1 { letter-spacing: 12px; font-weight: 300; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
-    .btn-gold { width: 100%; max-width: 300px; padding: 20px; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; font-weight: 600; letter-spacing: 3px; cursor: pointer; text-decoration: none; display: block; margin: 10px auto; }
-    input { width: 100%; max-width: 300px; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 15px 0; margin-bottom: 30px; font-size: 1.2rem; text-align: center; outline: none; }
+    :root { --gold: #d4af37; --bg: #000; --text: #fff; }
+    body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    h1 { letter-spacing: 10px; font-weight: 300; margin-bottom: 20px; }
+    #timer { font-size: 4rem; color: var(--gold); font-weight: bold; margin: 20px 0; }
+    .btn { padding: 15px 30px; border: 1px solid var(--gold); color: var(--gold); text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
+    .btn:hover { background: var(--gold); color: #000; }
+    input { background: transparent; border: 1px solid #333; color: #fff; padding: 10px; margin-bottom: 20px; text-align: center; width: 250px; }
 `;
 
+// 4. ROTAS (CORREÇÃO DO "CANNOT GET")
 app.get('/', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><a href="/reservar" class="btn-gold">Reservar</a><a href="/login" class="btn-gold">Login</a></body></html>`);
+    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><a href="/login" class="btn">Acessar Painel</a></body></html>`);
 });
 
 app.get('/login', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>BEM-VINDO</h1><form action="/painel" method="GET"><input type="text" name="cpf" placeholder="DIGITE SEU CPF" required><button type="submit" class="btn-gold">ENTRAR</button></form></body></html>`);
+    res.send(`<html><head><style>${style}</style></head><body><h1>LOGIN</h1><form action="/painel" method="GET"><input type="text" name="cpf" placeholder="SEU CPF" required><br><button type="submit" class="btn">ENTRAR</button></form></body></html>`);
 });
 
-// PAINEL COM CRONÔMETRO E POPUP
 app.get('/painel', async (req, res) => {
     const { cpf } = req.query;
     const hoje = new Date().toISOString().split('T')[0];
-    const reserva = await Reserva.findOne({ doc: cpf, data: hoje, status: { $in: ['pago', 'finalizado'] } });
+    const reserva = await Reserva.findOne({ doc: cpf, data: hoje });
 
-    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body><h1>ACESSO NEGADO</h1><a href="/login" class="btn-outline">Voltar</a></body></html>`);
+    if (!reserva) return res.send("<h1>Reserva não encontrada para hoje</h1><a href='/login'>Voltar</a>");
 
-    res.send(`<html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>${style}#timer{font-size:3rem;color:var(--gold);letter-spacing:5px;}</style></head><body><h1>ŪNIKA</h1><div id="timer">--:--</div>
-    <script>
-        let avisou10 = false;
-        function startTimer(duration, start){ 
-            const display=document.querySelector('#timer'); 
-            const end=new Date(start).getTime()+(duration*60000); 
-            setInterval(()=>{ 
-                const dist=end-new Date().getTime(); 
-                if(dist < 0){ 
-                    display.innerHTML="FIM"; 
-                    if(dist > -5000) alert("SUA SESSÃO NA ŪNIKA ENCERROU.");
-                    return; 
+    res.send(`<html><head><style>${style}</style></head><body>
+        <h1>ŪNIKA</h1>
+        <div id="timer">Calculando...</div>
+        <script>
+            function atualizar() {
+                const agora = new Date();
+                const dataFim = new Date("${reserva.data}T${reserva.hora}:00").getTime() + (${reserva.duracao} * 60000);
+                const dist = dataFim - agora.getTime();
+                
+                if (dist < 0) {
+                    document.getElementById('timer').innerHTML = "ENCERRADO";
+                    return;
                 }
-                const m = Math.floor((dist % 3600000) / 60000);
-                if(m === 10 && !avisou10) { alert("ATENÇÃO: Faltam 10 minutos."); avisou10 = true; }
-                const h=Math.floor(dist/3600000);
-                const s=Math.floor((dist%60000)/1000);
-                display.innerHTML=(h>0?h+":":"")+(m<10?"0"+m:m)+":"+(s<10?"0"+s:s); 
-            },1000); 
-        }
-        startTimer(parseInt("${reserva.duracao}"), new Date("${reserva.data}T${reserva.hora}:00"));
-    </script></body></html>`);
-});
 
-// ROTA DE TESTE RÁPIDO
-app.get('/testar-email', (req, res) => {
-    enviarEmail("riostoragecube@gmail.com", "Admin ŪNIKA", "Teste de e-mail funcionando!");
-    res.send("<h1>Comando enviado!</h1>");
+                const h = Math.floor(dist / 3600000);
+                const m = Math.floor((dist % 3600000) / 60000);
+                const s = Math.floor((dist % 60000) / 1000);
+                document.getElementById('timer').innerHTML = (h > 0 ? h + ":" : "") + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+            }
+            setInterval(atualizar, 1000);
+            atualizar();
+        </script>
+    </body></html>`);
 });
 
 app.listen(process.env.PORT || 3000);
