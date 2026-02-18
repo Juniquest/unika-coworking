@@ -76,7 +76,7 @@ function setTime(min) {
     selectedTime = min;
     // Atualiza botões de tempo
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    window.event.target.classList.add('active');
     updateSummary();
 }
 
