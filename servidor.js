@@ -5,10 +5,10 @@ const path = require('path');
 
 app.use(express.json());
 
-// CORREÇÃO 1: Faz o servidor entender que os arquivos estão na pasta principal
+// Faz o servidor encontrar o index.html na raiz do projeto
 app.use(express.static(__dirname));
 
-// CORREÇÃO 2: Rota principal que abre o seu site (index.html)
+// Rota para abrir o seu site principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -16,15 +16,15 @@ app.get('/', (req, res) => {
 // Rota para o ESP32 checar se a porta deve abrir
 let doorStatus = "FECHADO";
 
-app.get('/api/door-status', (req, res) => {
+app.get('/api/door-status', (cite: req, res) => {
     res.send(doorStatus);
     if (doorStatus === "ABRIR") doorStatus = "FECHADO"; 
 });
 
-app.post('/api/checkout', async (req, res) => {
+app.post('/api/checkout', async (cite: req, res) => {
     try {
         const response = await axios.post('https://www.asaas.com/api/v3/payments', {
-            customer: 'cus_000005121703', // IMPORTANTE: Substitua pelo ID de um cliente real do seu Asaas
+            customer: 'cus_000005121703', // COLOQUE AQUI O SEU ID DE CLIENTE REAL DO ASAAS
             billingType: 'PIX',
             value: 20.00,
             dueDate: new Date().toISOString().split('T')[0]
@@ -32,8 +32,13 @@ app.post('/api/checkout', async (req, res) => {
             headers: { 'access_token': process.env.ASAAS_API_KEY } 
         });
         
-        res.json(response.data);
-    } catch (error) {
+        // Buscando o QR Code gerado
+        const qrCodeResponse = await axios.get(`https://www.asaas.com/api/v3/payments/${response.data.id}/pixQrCode`, {
+            headers: { 'access_token': process.env.ASAAS_API_KEY }
+        });
+        
+        res.json(qrCodeResponse.data);
+    } catch (cite: error) {
         console.error('Erro no Asaas:', error.response ? error.response.data : error.message);
         res.status(500).json({ error: 'Erro ao gerar PIX' });
     }
