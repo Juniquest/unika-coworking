@@ -3,70 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ŪNIKA - Coworking Inteligente</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-    </style>
+    <title>ŪNIKA | Hub Inteligente 24h</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body>
 
-    <nav class="p-6 flex justify-between items-center glass sticky top-0 z-50 shadow-sm">
-        <h1 class="text-2xl font-bold tracking-tighter text-blue-600">ŪNIKA</h1>
-        <button onclick="gerarPix()" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition">
-            Reservar Agora
-        </button>
-    </nav>
-
-    <header class="py-20 px-6 text-center">
-        <h2 class="text-5xl font-bold mb-4 tracking-tight">Trabalhe com liberdade.</h2>
-        <p class="text-xl text-gray-600 mb-8">Acesse sua estação de trabalho instantaneamente via PIX.</p>
-        <div class="max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
-            <img src="https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?auto=format&fit=crop&w=1200" alt="Coworking">
+    <header>
+        <div class="container">
+            <h1 id="logo">ŪNIKA</h1>
+            <nav>
+                <span>Coworking Autônomo</span>
+            </nav>
         </div>
     </header>
 
-    <div id="modalPix" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
-        <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center">
-            <h3 class="text-xl font-bold mb-4">Escaneie para Abrir</h3>
-            <div id="qrcode-container" class="bg-gray-100 p-4 rounded-xl mb-4 flex justify-center">
-                <p class="text-sm text-gray-500">Gerando seu PIX...</p>
+    <main class="container">
+        <section class="hero">
+            <h2>Seu espaço, seu tempo.</h2>
+            <p>Acesso instantâneo 24h via PIX.</p>
+        </section>
+
+        <div class="grid-services">
+            <div class="card" onclick="selectService('estacao', 'Estação de Trabalho')">
+                <div class="badge">A partir de R$ 10</div>
+                <h3>Estação de Trabalho</h3>
+                <p>Mesa individual, Wi-Fi 6 e café.</p>
             </div>
-            <p class="text-sm text-gray-500 mb-6">A porta abrirá automaticamente após o pagamento.</p>
-            <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">Cancelar</button>
+            <div class="card" onclick="selectService('reuniao', 'Sala de Reunião')">
+                <div class="badge">A partir de R$ 50</div>
+                <h3>Sala de Reunião</h3>
+                <p>Privacidade e TV para apresentações.</p>
+            </div>
+            <div class="card" onclick="selectService('banheiro', 'Banheiro / Ducha')">
+                <div class="badge">R$ 5 (Uso único)</div>
+                <h3>Banheiro</h3>
+                <p>Acesso imediato e higienizado.</p>
+            </div>
         </div>
-    </div>
 
-    <script>
-        async function gerarPix() {
-            document.getElementById('modalPix').classList.remove('hidden');
+        <div id="checkout-area" class="checkout-card hidden">
+            <h3 id="selected-title">Configurar Reserva</h3>
             
-            try {
-                const response = await fetch('/api/checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ valor: 20.00 })
-                });
-                
-                const data = await response.json();
-                
-                if (data.encodedImage) {
-                    document.getElementById('qrcode-container').innerHTML = 
-                        `<img src="data:image/png;base64,${data.encodedImage}" class="w-full">`;
-                } else {
-                    alert("Erro ao gerar PIX. Verifique sua chave API.");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Erro na conexão com o servidor.");
-            }
-        }
+            <div class="input-group">
+                <label>Seu Nome</label>
+                <input type="text" id="userName" placeholder="Ex: João Silva">
+            </div>
 
-        function fecharModal() {
-            document.getElementById('modalPix').classList.add('hidden');
-        }
-    </script>
+            <div id="time-selection">
+                <label>Duração</label>
+                <div class="time-grid">
+                    <button class="time-btn" onclick="setTime(30)">30 min</button>
+                    <button class="time-btn" onclick="setTime(60)">60 min</button>
+                    <button class="time-btn" onclick="setTime(120)">120 min</button>
+                </div>
+            </div>
+
+            <div class="total-area">
+                <span>Total: <strong id="display-price">R$ 0,00</strong></span>
+            </div>
+
+            <button class="btn-primary" onclick="generatePix()">Gerar QR Code de Acesso</button>
+            <button class="btn-cancel" onclick="resetUI()">Voltar</button>
+        </div>
+
+        <div id="pix-area" class="pix-container hidden">
+            <h3>Escaneie para Abrir</h3>
+            <img id="qr-code-img" src="" alt="QR Code PIX">
+            <p>A porta liberará automaticamente após o pagamento.</p>
+            <button class="btn-cancel" onclick="resetUI()">Cancelar</button>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
