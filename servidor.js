@@ -16,7 +16,7 @@ const reservaSchema = new mongoose.Schema({
 });
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// 2. PÁGINA INICIAL (VISUAL PREMIUM + AGENDA 24H)
+// 2. PÁGINA INICIAL (VISUAL PREMIUM 24H)
 app.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -36,14 +36,14 @@ app.get('/', (req, res) => {
         h2 { font-weight: 200; font-size: 1.2rem; border-left: 2px solid var(--gold); padding-left: 15px; margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; }
         .form-group { margin-bottom: 25px; }
         label { display: block; font-size: 0.6rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 8px; text-transform: uppercase; }
-        input, select { width: 100%; background: transparent; border: none; border-bottom: 1px solid #333; color: #fff; padding: 12px 0; font-size: 1rem; outline: none; transition: 0.3s; }
+        input { width: 100%; background: transparent; border: none; border-bottom: 1px solid #333; color: #fff; padding: 12px 0; font-size: 1rem; outline: none; box-sizing: border-box; }
         .agenda-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; max-height: 180px; overflow-y: auto; border: 1px solid #222; padding: 15px; }
-        .hora-item { border: 1px solid #333; padding: 10px; text-align: center; font-size: 0.75rem; cursor: pointer; transition: 0.3s; color: #888; }
+        .hora-item { border: 1px solid #333; padding: 10px; text-align: center; font-size: 0.75rem; cursor: pointer; color: #888; }
         .hora-item.selected { background: var(--gold); color: #000; border-color: var(--gold); }
         .duracao-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
-        .duracao-item { border: 1px solid #333; padding: 15px; text-align: center; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
+        .duracao-item { border: 1px solid #333; padding: 15px; text-align: center; cursor: pointer; font-size: 0.8rem; }
         .duracao-item.selected { background: #fff; color: #000; border-color: #fff; }
-        .btn-finalizar { width: 100%; padding: 20px; background: transparent; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; letter-spacing: 4px; font-weight: bold; text-transform: uppercase; margin-top: 30px; transition: 0.4s; }
+        .btn-finalizar { width: 100%; padding: 20px; background: transparent; border: 1px solid var(--gold); color: var(--gold); cursor: pointer; letter-spacing: 4px; font-weight: bold; text-transform: uppercase; margin-top: 30px; }
         .btn-finalizar:hover { background: var(--gold); color: #000; }
     </style>
 </head>
@@ -96,7 +96,7 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-// 3. LOGICA DE CHECKOUT
+// 3. LOGICA DE CHECKOUT COM SEUS LINKS ASAAS
 app.post('/api/checkout', async (req, res) => {
     const { nome, doc, email, data, hora, duracao } = req.body;
     const linksAsaas = {
@@ -109,13 +109,14 @@ app.post('/api/checkout', async (req, res) => {
     try {
         const novaReserva = new Reserva(req.body);
         await novaReserva.save();
-        res.send(`<body style="background:#050505; color:#fff; text-align:center; padding-top:100px; font-family:sans-serif;">
-            <h1 style="color:#c5a059;">ŪNIKA</h1>
-            <p>Redirecionando para o pagamento...</p>
-            <script>setTimeout(() => { window.location.href='${linkFinal}'; }, 2000);</script>
-        </body>`);
-    } catch (err) { res.send("Erro ao processar."); }
+        res.send(`
+            <body style="background:#050505; color:#fff; text-align:center; padding-top:100px; font-family:sans-serif;">
+                <h1 style="color:#c5a059;">ŪNIKA</h1>
+                <p>Redirecionando para o pagamento seguro...</p>
+                <script>setTimeout(() => { window.location.href='${linkFinal}'; }, 2000);</script>
+            </body>`);
+    } catch (err) { res.send("Erro ao processar reserva."); }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("🚀 Servidor Online"));
+app.listen(PORT, () => console.log("🚀 Servidor Online na porta " + PORT));
