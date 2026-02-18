@@ -1,0 +1,75 @@
+let selectedService = '';
+let selectedTime = 0;
+const prices = {
+    estacao: { 30: 10, 60: 18, 120: 30 },
+    reuniao: { 30: 50, 60: 90, 120: 150 },
+    banheiro: { 0: 5 } // Banheiro é preço fixo
+};
+
+function selectService(id, name) {
+    selectedService = id;
+    document.getElementById('selected-title').innerText = `Configurar: ${name}`;
+    document.getElementById('checkout-area').classList.remove('hidden');
+    
+    // Se for banheiro, esconde a seleção de tempo
+    if(id === 'banheiro') {
+        document.getElementById('time-selection').classList.add('hidden');
+        selectedTime = 0;
+        updatePrice();
+    } else {
+        document.getElementById('time-selection').classList.remove('hidden');
+    }
+    window.scrollTo(0, document.getElementById('checkout-area').offsetTop);
+}
+
+function setTime(minutes) {
+    selectedTime = minutes;
+    // Remove classe ativa de todos e adiciona no clicado
+    document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    updatePrice();
+}
+
+function updatePrice() {
+    const price = prices[selectedService][selectedTime];
+    document.getElementById('display-price').innerText = `R$ ${price.toFixed(2)}`;
+}
+
+async function generatePix() {
+    const userName = document.getElementById('userName').value;
+    if(!userName) return alert("Por favor, digite seu nome.");
+    
+    const btn = event.target;
+    btn.innerText = "Gerando seu acesso...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                servico: selectedService,
+                tempo: selectedTime,
+                nome: userName
+            })
+        });
+
+        const data = await response.json();
+        if (data.encodedImage) {
+            document.getElementById('checkout-area').classList.add('hidden');
+            document.getElementById('pix-area').classList.remove('hidden');
+            document.getElementById('qr-code-img').src = `data:image/png;base64,${data.encodedImage}`;
+        } else {
+            alert("Erro ao gerar PIX. Verifique os logs.");
+            btn.disabled = false;
+            btn.innerText = "Gerar QR Code de Acesso";
+        }
+    } catch (error) {
+        alert("Erro de conexão com o servidor.");
+        btn.disabled = false;
+    }
+}
+
+function resetUI() {
+    location.reload(); // Forma mais simples de resetar o fluxo
+}
