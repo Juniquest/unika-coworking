@@ -4,9 +4,13 @@ const nodemailer = require('nodemailer');
 const app = express();
 
 app.use(express.json());
+
+// ======================================================
+// 1. PÁGINA INICIAL (Resolve o erro "Cannot GET /")
+// ======================================================
 app.get('/', (req, res) => {
     res.send(`
-        <div style="text-align: center; font-family: sans-serif; padding-top: 100px; background-color: #f4f4f4; height: 100vh;">
+        <div style="text-align: center; font-family: sans-serif; padding-top: 100px; background-color: #f4f4f4; height: 100vh; margin: 0;">
             <h1 style="letter-spacing: 8px; color: #000;">ŪNIKA</h1>
             <div style="display: inline-block; padding: 20px; border: 2px solid #000; border-radius: 10px; background: #fff;">
                 <p style="color: green; font-weight: bold; font-size: 1.2rem; margin: 0;">✅ SERVIDOR ONLINE</p>
@@ -17,7 +21,9 @@ app.get('/', (req, res) => {
     `);
 });
 
-// 1. CONEXÃO COM O BANCO DE DADOS (MONGODB)
+// ======================================================
+// 2. CONEXÃO COM O BANCO DE DADOS (MONGODB)
+// ======================================================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Banco de Dados UNIKA conectado!"))
   .catch(err => console.error("❌ Erro ao conectar banco:", err));
@@ -34,7 +40,9 @@ const reservaSchema = new mongoose.Schema({
 
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// 2. CONFIGURAÇÃO DO E-MAIL (NODEMAILER)
+// ======================================================
+// 3. CONFIGURAÇÃO DO E-MAIL (NODEMAILER)
+// ======================================================
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -43,7 +51,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// FUNÇÃO DO E-MAIL PROFISSIONAL DA ŪNIKA
 async function enviarEmailConfirmacao(reserva) {
     const isSalaReuniao = reserva.servico.toLowerCase().includes('reunião');
     
@@ -74,7 +81,7 @@ async function enviarEmailConfirmacao(reserva) {
                 <p>Ative via QR Code no local: Guarda-volumes inteligentes e Market 24h (cafés e bebidas).</p>
 
                 <h3>🤝 Colaboração</h3>
-                <p>Contamos com você para manter o espaço limpo para o próximo profissional. Temos lixeiras distribuídas em todo o coworking.</p>
+                <p>Contamos com você para manter o espaço limpo para o próximo profissional.</p>
 
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="https://share.google/Z0QXBy4MO7JGUAd07" style="background-color: #000; color: #fff; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">📍 VER NO GOOGLE MAPS</a>
@@ -91,9 +98,13 @@ async function enviarEmailConfirmacao(reserva) {
     });
 }
 
-// 3. WEBHOOK DO ASAAS (RECEBE O PAGAMENTO)
+// ======================================================
+// 4. WEBHOOK DO ASAAS (RECEBE O PAGAMENTO)
+// ======================================================
 app.post('/api/webhook', async (req, res) => {
     const event = req.body;
+    console.log("🔔 Webhook recebido:", event.event);
+
     if (event.event === 'PAYMENT_RECEIVED' || event.event === 'PAYMENT_CONFIRMED') {
         const [doc, servico, data, hora] = event.payment.externalReference.split('|');
         
@@ -104,14 +115,16 @@ app.post('/api/webhook', async (req, res) => {
         );
 
         if (reserva) {
-            console.log("✅ Pagamento confirmado. Enviando e-mail...");
+            console.log("✅ Pagamento confirmado para:", reserva.nome);
             await enviarEmailConfirmacao(reserva);
         }
     }
     res.status(200).send('OK');
 });
 
-// 4. API PARA O ESP32 (ABRE A PORTA)
+// ======================================================
+// 5. API PARA O ESP32 (ABRE A PORTA)
+// ======================================================
 app.get('/api/verificar-acesso', async (req, res) => {
     const { cpf } = req.query;
     const hoje = new Date().toLocaleDateString('pt-BR');
@@ -125,5 +138,8 @@ app.get('/api/verificar-acesso', async (req, res) => {
     }
 });
 
+// ======================================================
+// 6. INICIALIZAÇÃO
+// ======================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
