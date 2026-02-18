@@ -31,17 +31,18 @@ cron.schedule('* * * * *', async () => {
     const reservas = await Reserva.find({ data: hoje, status: 'pago' });
 
     for (const res of reservas) {
+        if (!res.hora || res.servico.includes('Banheiro')) continue;
         const [h, m] = res.hora.split(':');
-        const dataInicio = new Date(`${res.data}T${h}:${m}:00`);
-        const dataFim = new Date(dataInicio.getTime() + (parseInt(res.duracao) * 60000));
+        const dataFim = new Date(`${res.data}T${h}:${m}:00`);
+        dataFim.setMinutes(dataFim.getMinutes() + parseInt(res.duracao));
         const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
 
         if (tempoRestanteMin === 10) {
-            enviarEmail(res.email, res.nome, "Informamos que sua sessão na ŪNIKA encerra em 10 minutos. Sinta-se à vontade para organizar seus pertences.");
+            enviarEmail(res.email, res.nome, "Sua sessão na ŪNIKA encerra em 10 minutos.");
         }
         if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
-            enviarEmail(res.email, res.nome, "Sua sessão foi encerrada e os equipamentos foram desligados. Agradecemos por escolher a ŪNIKA.");
             await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
+            enviarEmail(res.email, res.nome, "Sua sessão encerrou.");
         }
     }
 });
@@ -50,18 +51,17 @@ function enviarEmail(email, nome, mensagem) {
     const mailOptions = {
         from: 'ŪNIKA | Experiência Digital <riostoragecube@gmail.com>',
         to: email,
-        subject: 'ŪNIKA | Informação importante sobre sua sessão',
-        text: `Olá, ${nome}.\n\n${mensagem}\n\nAtenciosamente,\nEquipe ŪNIKA`
+        subject: 'Aviso ŪNIKA',
+        text: `Olá, ${nome}.\n\n${mensagem}`
     };
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS (LAYOUT ORIGINAL RECUPERADO)
+// 3. ESTILOS
 const style = `
     :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
     h1 { letter-spacing: 12px; font-weight: 300; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
-    .slogan { color: var(--gold); font-size: 0.7rem; letter-spacing: 3px; margin-top: 10px; text-transform: uppercase; opacity: 0.8; }
     .container { width: 90%; max-width: 500px; background: var(--card); padding: 40px; border: 1px solid #222; border-radius: 4px; margin-top: 30px; text-align: left; }
     input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 15px 0; margin-bottom: 20px; font-size: 1rem; outline: none; }
     .btn-gold { width: 100%; padding: 20px; background: transparent; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; font-weight: 600; letter-spacing: 3px; cursor: pointer; text-decoration: none; display: block; text-align: center; margin-top: 20px; }
@@ -70,14 +70,13 @@ const style = `
     .selected { border-color: var(--gold); background: rgba(212,175,55,0.1); }
     .agenda { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
     .timer-box { border: 1px solid var(--gold); padding: 20px; margin-bottom: 20px; text-align: center; }
-    #timer { font-size: 3rem; color: var(--gold); letter-spacing: 5px; }
-    .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .btn-iot { background: transparent; border: 1px solid #333; color: #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; }
+    #timer { font-size: 3.5rem; color: var(--gold); letter-spacing: 5px; }
+    .btn-iot { width: 100%; background: transparent; border: 1px solid #333; color: #fff; padding: 20px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; }
 `;
 
 // 4. ROTAS
 app.get('/', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="slogan">Onde o luxo encontra a produtividade</div><div style="margin-top:30px;"><a href="/reservar" class="btn-gold">Reservar Espaço</a><a href="/login" class="btn-gold" style="margin-top:10px;">Acessar Meu Painel</a></div></body></html>`);
+    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><a href="/reservar" class="btn-gold">Reservar Espaço</a><a href="/login" class="btn-gold">Acessar Meu Painel</a></body></html>`);
 });
 
 app.get('/login', (req, res) => {
@@ -85,51 +84,99 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/reservar', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="container"><form action="/api/checkout" method="POST">
+    res.send(`<html><head><style>${style}</style></head><body><h1>RESERVAR</h1><div class="container"><form action="/api/checkout" method="POST">
     <div class="grid"><div class="item" onclick="sel('Estação Individual', this)">ESTAÇÃO</div><div class="item" onclick="sel('Sala de Reunião', this)">SALA</div><div class="item" onclick="sel('Banheiro Masc', this)">BANHEIRO (M)</div><div class="item" onclick="sel('Banheiro Fem', this)">BANHEIRO (F)</div></div>
     <input type="hidden" name="servico" id="servico" required>
-    <input type="text" name="nome" placeholder="NOME" required>
+    <input type="text" name="nome" placeholder="NOME COMPLETO" required>
     <input type="text" name="doc" placeholder="CPF" required>
     <input type="email" name="email" placeholder="E-MAIL" required>
-    <input type="date" id="data" name="data" onchange="loadHr()" style="color-scheme:dark;">
-    <div class="agenda" id="agenda"></div>
-    <input type="hidden" name="hora" id="hora">
-    <input type="hidden" name="duracao" value="120">
-    <button type="submit" class="btn-gold">Pagar e Reservar</button></form></div>
+    <div id="box-agenda">
+        <input type="date" id="data" name="data" onchange="loadHr()" style="color-scheme:dark;">
+        <div class="agenda" id="agenda"></div>
+        <input type="hidden" name="hora" id="hora">
+    </div>
+    <input type="hidden" name="duracao" id="duracao" value="120">
+    <button type="submit" class="btn-gold">Ir para Pagamento</button></form></div>
     <script>
-        function sel(v, e){ document.querySelectorAll('.item').forEach(x=>x.classList.remove('selected')); e.classList.add('selected'); document.getElementById('servico').value=v; }
-        async function loadHr(){ const d=document.getElementById('data').value; const res=await fetch('/api/horarios-ocupados?data='+d); const ocup=await res.json(); const cont=document.getElementById('agenda'); cont.innerHTML=''; for(let i=8;i<22;i++){ [":00",":30"].forEach(m=>{ const h=(i<10?'0'+i:i)+m; const dv=document.createElement('div'); dv.className='item'; dv.innerText=h; dv.onclick=()=>{ document.querySelectorAll('.agenda .item').forEach(x=>x.classList.remove('selected')); dv.classList.add('selected'); document.getElementById('hora').value=h; }; cont.appendChild(dv); }); } }
+        function sel(v,e){
+            document.querySelectorAll('.item').forEach(x=>x.classList.remove('selected'));
+            e.classList.add('selected');
+            document.getElementById('servico').value=v;
+            const isBanheiro = v.includes('Banheiro');
+            document.getElementById('box-agenda').style.display = isBanheiro ? 'none' : 'block';
+            if(isBanheiro) { 
+                document.getElementById('hora').value = "00:00"; 
+                document.getElementById('data').value = new Date().toISOString().split('T')[0];
+                document.getElementById('duracao').value = "60";
+            }
+        }
+        async function loadHr(){
+            const d=document.getElementById('data').value;
+            const r=await fetch('/api/horarios-ocupados?data='+d);
+            const ocup=await r.json();
+            const c=document.getElementById('agenda'); c.innerHTML='';
+            for(let i=8;i<22;i++){ [":00",":30"].forEach(m=>{
+                const h=(i<10?'0'+i:i)+m; const dv=document.createElement('div');
+                dv.className='item'; dv.innerText=h; dv.onclick=()=>{
+                    document.querySelectorAll('.agenda .item').forEach(x=>x.classList.remove('selected'));
+                    dv.classList.add('selected'); document.getElementById('hora').value=h;
+                }; c.appendChild(dv);
+            });}
+        }
     </script></body></html>`);
 });
 
 app.get('/painel', async (req, res) => {
     const { cpf } = req.query;
     const hoje = new Date().toISOString().split('T')[0];
-    const reserva = await Reserva.findOne({ doc: cpf, data: hoje });
-    if (!reserva) return res.send("Acesso Negado");
-    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="container"><div class="timer-box"><div id="timer">--:--</div></div>
-    <div class="control-grid"><button class="btn-iot">💡 Luzes</button><button class="btn-iot">❄️ Ar</button><button class="btn-iot">📺 TV</button><button class="btn-iot">🔌 Tomadas</button></div></div>
+    const reserva = await Reserva.findOne({ doc: cpf, data: hoje }).sort({ _id: -1 });
+
+    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body><h1>ACESSO NEGADO</h1><a href="/login" class="btn-gold">Voltar</a></body></html>`);
+
+    const isPremium = reserva.servico.includes('Estação') || reserva.servico.includes('Sala');
+    const isMasc = reserva.servico.includes('Masc');
+    const isFem = reserva.servico.includes('Fem');
+
+    res.send(`<html><head><style>${style}</style></head><body><h1>ŪNIKA</h1><div class="container">
+    <div class="timer-box"><div id="timer">${isPremium ? '--:--' : 'ACESSO LIBERADO'}</div></div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+        ${isPremium ? '<button class="btn-iot" onclick="alert(\'Acesso Masc Liberado\')">🚹 Abrir Banheiro Masc</button><button class="btn-iot" onclick="alert(\'Acesso Fem Liberado\')">🚺 Abrir Banheiro Fem</button>' : ''}
+        ${isMasc ? '<button class="btn-iot" onclick="alert(\'Acesso Masculino Liberado\')">🚹 Abrir Banheiro Masculino</button>' : ''}
+        ${isFem ? '<button class="btn-iot" onclick="alert(\'Acesso Feminino Liberado\')">🚺 Abrir Banheiro Feminino</button>' : ''}
+    </div></div>
     <script>
-        function start(){ 
-            const end = new Date("${reserva.data}T${reserva.hora}:00").getTime() + (${reserva.duracao} * 60000);
-            setInterval(() => {
-                const dist = end - new Date().getTime();
-                if(dist<0){ document.getElementById('timer').innerHTML="FIM"; return; }
-                const m = Math.floor((dist % 3600000) / 60000);
-                const s = Math.floor((dist % 60000) / 1000);
-                document.getElementById('timer').innerHTML = m + ":" + (s < 10 ? "0" + s : s);
-            }, 1000);
-        } start();
+        if(${isPremium}){
+            function start(){
+                const [h, m] = "${reserva.hora}".split(':');
+                const fim = new Date("${reserva.data}T" + h + ":" + m + ":00").getTime() + (${reserva.duracao} * 60000);
+                setInterval(() => {
+                    const dist = fim - new Date().getTime();
+                    if(dist < 0) { document.getElementById('timer').innerHTML = "FIM"; return; }
+                    const mm = Math.floor((dist % 3600000) / 60000);
+                    const ss = Math.floor((dist % 60000) / 1000);
+                    document.getElementById('timer').innerHTML = mm + ":" + (ss < 10 ? "0" + ss : ss);
+                }, 1000);
+            } start();
+        }
     </script></body></html>`);
+});
+
+app.post('/api/checkout', async (req, res) => {
+    const { servico, doc } = req.body;
+    let linkAsaas = "https://www.asaas.com/c/astpmmsj1m8b7wct"; // Link padrão Sala/Estação
+    
+    if(servico === 'Banheiro Masc') linkAsaas = "https://www.asaas.com/c/xx8y9j7aelqt1u1z";
+    if(servico === 'Banheiro Fem') linkAsaas = "https://www.asaas.com/c/hy4cb2sz0ya4mmrd";
+
+    try { 
+        await new Reserva(req.body).save(); 
+        res.send(`<script>location.href="${linkAsaas}?externalReference=${doc}";</script>`); 
+    } catch (e) { res.send("Erro."); }
 });
 
 app.get('/api/horarios-ocupados', async (req, res) => {
     const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
     res.json(ocupados.map(r => r.hora));
-});
-
-app.post('/api/checkout', async (req, res) => {
-    try { await new Reserva(req.body).save(); res.send("Redirecionando para pagamento..."); } catch (e) { res.send("Erro."); }
 });
 
 app.listen(process.env.PORT || 3000);
