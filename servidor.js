@@ -36,6 +36,19 @@ cron.schedule('* * * * *', async () => {
         const dataFim = new Date(dataInicio.getTime() + (parseInt(res.duracao) * 60000));
         const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
 
+        // AVISO DE 10 MINUTOS
+        if (tempoRestanteMin === 10) {
+            enviarEmail(res.email, res.nome, "Informamos que sua sessão na ŪNIKA encerra em 10 minutos. Sinta-se à vontade para organizar seus pertences e finalizar suas atividades com tranquilidade. Esperamos que seu tempo conosco tenha sido memorável.");
+        }
+
+        // ENCERRAMENTO TOTAL
+        if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
+            console.log(`[SHUTDOWN] ${res.servico} - ${res.nome}`);
+            enviarEmail(res.email, res.nome, "Sua sessão foi encerrada e os equipamentos foram desligados. Agradecemos por escolher a ŪNIKA para sua produtividade hoje. Esperamos recebê-lo(a) novamente em breve.");
+            await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
+        }
+    });
+});
         // Notificação por E-mail faltando 10 minutos
         if (tempoRestanteMin === 10) {
             enviarEmail(res.email, res.nome, "Seu tempo na ŪNIKA encerra em 10 minutos.");
