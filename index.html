@@ -74,6 +74,35 @@
 
                 <div id="duration-selection" class="hidden">
                     <label style="display:block; margin-top:20px;">Duração</label>
-                    <div class="time-grid">
+                    <div class="time-grid" style="display: flex; gap: 10px;">
                         <button class="time-btn active" onclick="setTime(30)">30 min</button>
-                        <button class="time
+                        <button class="time-btn" onclick="setTime(60)">60 min</button>
+                        <button class="time-btn" onclick="setTime(120)">120 min</button>
+                    </div>
+                </div>
+
+                <div class="total-area">
+                    <div id="booking-summary" style="margin-bottom: 10px; font-weight: 600; color: #666;">---</div>
+                    <div id="display-price">R$ 0,00</div>
+                </div>
+
+                <div class="warning-box">
+                    ⚠️ Pagamento antecipado. Sem reembolso para cancelamentos.
+                </div>
+
+                <button class="btn-primary" id="btn-pay" onclick="generatePix()" disabled>Gerar QR Code de Acesso</button>
+                <button class="btn-cancel" onclick="resetUI()" style="width:100%; background:none; border:none; color:#888; margin-top:10px; cursor:pointer;">Voltar</button>
+            </div>
+
+            <div id="pix-area" class="pix-container hidden" style="text-align: center;">
+                <h3>Acesso quase pronto!</h3>
+                <p>Pague o PIX para confirmar.</p>
+                <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto;">
+                <button class="btn-primary" onclick="resetUI()">Finalizar</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
