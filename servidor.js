@@ -4,6 +4,18 @@ const nodemailer = require('nodemailer');
 const app = express();
 
 app.use(express.json());
+app.get('/', (req, res) => {
+    res.send(`
+        <div style="text-align: center; font-family: sans-serif; padding-top: 100px; background-color: #f4f4f4; height: 100vh;">
+            <h1 style="letter-spacing: 8px; color: #000;">ŪNIKA</h1>
+            <div style="display: inline-block; padding: 20px; border: 2px solid #000; border-radius: 10px; background: #fff;">
+                <p style="color: green; font-weight: bold; font-size: 1.2rem; margin: 0;">✅ SERVIDOR ONLINE</p>
+                <p style="color: #666;">O cérebro do seu coworking está operando e conectado.</p>
+            </div>
+            <p style="margin-top: 20px; font-size: 0.8rem; color: #888;">Centro, Rio de Janeiro - Ed. Marquês do Herval</p>
+        </div>
+    `);
+});
 
 // 1. CONEXÃO COM O BANCO DE DADOS (MONGODB)
 mongoose.connect(process.env.MONGO_URI)
