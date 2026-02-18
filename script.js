@@ -29,26 +29,37 @@ function selectService(id, name) {
 function loadAvailableTimes() {
     selectedDate = document.getElementById('booking-date').value;
     const grid = document.getElementById('slots-grid');
-    grid.innerHTML = '';
+    
+    if (!selectedDate) return;
 
-    // Gera horários das 08:00 às 22:00
-    for(let h = 8; h <= 22; h++) {
-        for(let m of ['00', '30']) {
+    grid.innerHTML = ''; // Limpa antes de gerar
+    console.log("Gerando horários para:", selectedDate);
+
+    // Gerar horários das 08h às 22h
+    for (let h = 8; h <= 22; h++) {
+        for (let m of ['00', '30']) {
             const time = `${h.toString().padStart(2, '0')}:${m}`;
             const div = document.createElement('div');
             div.className = 'slot';
             div.innerText = time;
+            
             div.onclick = (e) => {
+                // Remove seleção de outros
                 document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+                // Seleciona o atual
                 e.target.classList.add('selected');
                 selectedStartSlot = time;
+                
+                // Libera a próxima parte
                 document.getElementById('duration-selection').classList.remove('hidden');
-                document.getElementById('btn-pay').disabled = false;
                 updateSummary();
             };
             grid.appendChild(div);
         }
     }
+    
+    // Garante que o container da grid apareça
+    document.getElementById('time-grid-container').style.display = 'block';
 }
 
 function setTime(min) {
