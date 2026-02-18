@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ŪNIKA | Hub Inteligente 24h</title>
+    <title>ŪNIKA | Agenda Inteligente</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <header>
         <div class="container">
             <h1 id="logo">ŪNIKA</h1>
@@ -19,59 +18,43 @@
     <main class="container">
         <section id="auth-screen">
             <div class="auth-card">
-                <h2 style="text-align: center; color: #1d1d1f; margin-bottom: 10px;">Bem-vindo ao ŪNIKA</h2>
-                <p style="text-align: center; color: #6e6e73; font-size: 15px; margin-bottom: 30px;">
-                    Seu acesso inteligente e 24h. Por favor, identifique-se.
-                </p>
-                
+                <h2>Bem-vindo ao ŪNIKA</h2>
+                <p>Identifique-se para agendar seu acesso.</p>
                 <div class="input-group">
-                    <label for="regName">Nome Completo</label>
+                    <label>Nome Completo</label>
                     <input type="text" id="regName" placeholder="Seu nome">
                 </div>
                 <div class="input-group">
-                    <label for="regEmail">E-mail</label>
+                    <label>E-mail</label>
                     <input type="email" id="regEmail" placeholder="seu@email.com">
                 </div>
                 <div class="input-group">
-                    <label for="regDoc">CPF ou RNE (Apenas números)</label>
-                    <input type="text" id="regDoc" placeholder="Seu documento para acesso">
+                    <label>CPF ou RNE</label>
+                    <input type="text" id="regDoc" placeholder="Apenas números">
                 </div>
-
                 <button class="btn-primary" onclick="startSession()">Acessar Serviços</button>
             </div>
         </section>
 
         <section id="services-screen" class="hidden">
             <div class="hero">
-                <h2>Olá, <span id="user-greeting">Visitante</span>!</h2>
-                <p>Escolha seu espaço e gere seu acesso instantâneo.</p>
+                <h2>Olá, <span id="user-greeting"></span>!</h2>
+                <p>Escolha o espaço e o horário da sua reserva.</p>
             </div>
 
             <div class="grid-services">
                 <div class="card" onclick="selectService('estacao', 'Estação de Trabalho')">
                     <div class="card-img img-estacao"></div>
                     <div class="card-content">
-                        <div class="badge">A partir de R$ 10</div>
+                        <div class="badge">R$ 10/30min</div>
                         <h3>Estação de Trabalho</h3>
-                        <p>Mesa individual com Wi-Fi 6 e café ilimitado.</p>
                     </div>
                 </div>
-
                 <div class="card" onclick="selectService('reuniao', 'Sala de Reunião')">
                     <div class="card-img img-reuniao"></div>
                     <div class="card-content">
-                        <div class="badge">A partir de R$ 50</div>
+                        <div class="badge">R$ 50/30min</div>
                         <h3>Sala de Reunião</h3>
-                        <p>Privacidade total para suas calls e reuniões presenciais.</p>
-                    </div>
-                </div>
-
-                <div class="card" onclick="selectService('banheiro', 'Banheiro / Ducha')">
-                    <div class="card-img img-banheiro"></div>
-                    <div class="card-content">
-                        <div class="badge">R$ 5,00</div>
-                        <h3>Banheiro</h3>
-                        <p>Acesso imediato para higiene e bem-estar.</p>
                     </div>
                 </div>
             </div>
@@ -79,34 +62,18 @@
             <div id="checkout-area" class="checkout-card hidden">
                 <h3 id="selected-title">Configurar Reserva</h3>
                 
-                <div id="time-selection">
-                    <label style="display: block; margin-bottom: 8px;">Escolha a Duração</label>
-                    <div class="time-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div class="input-group">
+                    <label>Data da Reserva</label>
+                    <input type="date" id="booking-date" onchange="loadAvailableTimes()">
+                </div>
+
+                <div id="time-grid-container">
+                    <label>Horários Disponíveis (Início)</label>
+                    <div class="slots-grid" id="slots-grid"></div>
+                </div>
+
+                <div id="duration-selection" class="hidden">
+                    <label style="display:block; margin-top:20px;">Duração</label>
+                    <div class="time-grid">
                         <button class="time-btn active" onclick="setTime(30)">30 min</button>
-                        <button class="time-btn" onclick="setTime(60)">60 min</button>
-                        <button class="time-btn" onclick="setTime(120)">120 min</button>
-                    </div>
-                </div>
-
-                <div class="total-area" style="margin: 30px 0; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-                    <span style="font-size: 1.1rem; color: #86868b;">Total a pagar:</span>
-                    <div id="display-price" style="font-size: 2rem; font-weight: 600; color: #1d1d1f;">R$ 10,00</div>
-                </div>
-
-                <button class="btn-primary" onclick="generatePix()" style="width: 100%; padding: 18px; background: #0071e3; color: white; border: none; border-radius: 14px; font-weight: 600; cursor: pointer;">Gerar QR Code de Acesso</button>
-                <button class="btn-cancel" onclick="resetUI()" style="width: 100%; background: none; border: none; margin-top: 15px; cursor: pointer; color: #86868b;">Voltar</button>
-            </div>
-
-            <div id="pix-area" class="pix-container hidden" style="text-align: center; padding: 40px;">
-                <h3>Seu acesso está quase pronto!</h3>
-                <p>Pague o PIX para liberar a porta automaticamente.</p>
-                <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto; display: block; border: 10px solid white; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                <p style="color: #0071e3; font-weight: 600;">Aguardando pagamento...</p>
-                <button class="btn-cancel" onclick="resetUI()">Cancelar</button>
-            </div>
-        </section>
-    </main>
-
-    <script src="script.js"></script>
-</body>
-</html>
+                        <button class="time
