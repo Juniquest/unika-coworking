@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="warning-box">
-                    ⚠️ Pagamento antecipado. Sem reembolso para cancelamentos.
+                    ⚠️ Pagamento antecipado. Sem reembolso para cancelamentos. O timer inicia exatamente no horário agendado.
                 </div>
 
                 <button class="btn-primary" id="btn-pay" onclick="generatePix()" disabled>Gerar QR Code de Acesso</button>
@@ -97,12 +97,11 @@
             <div id="pix-area" class="pix-container hidden" style="text-align: center;">
                 <h3>Acesso quase pronto!</h3>
                 <p>Pague o PIX para confirmar.</p>
-                <img id="qr-code-img" src="" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto; display: block; border: 10px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <img id="qr-code-img" src="" alt="PIX" style="max-width: 250px; margin: 20px auto; display: block; border: 10px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <button class="btn-primary" onclick="resetUI()">Finalizar</button>
             </div>
         </section>
     </main>
-
     <script src="script.js"></script>
 </body>
 </html>
