@@ -1,140 +1,98 @@
-// Variáveis Globais para controle do sistema
 let userData = { nome: '', email: '', documento: '' };
 let selectedService = '';
+let selectedDate = '';
 let selectedTime = 30;
+let selectedStartSlot = '';
 
-// Tabela de preços para exibição visual
-const precosVisual = {
-    estacao: { 30: 10, 60: 18, 120: 30 },
-    reuniao: { 30: 50, 60: 90, 120: 150 },
-    banheiro: 5
-};
+const precos = { estacao: { 30: 10, 60: 18, 120: 30 }, reuniao: { 30: 50, 60: 90, 120: 150 } };
 
-/**
- * PASSO 1: Iniciar Sessão (Pré-cadastro)
- * Esta função valida os dados iniciais e libera a área de serviços.
- */
 function startSession() {
     const nome = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const doc = document.getElementById('regDoc').value;
 
-    // Validação básica de campos vazios
-    if(!nome || !email || !doc) {
-        alert("Por favor, preencha todos os campos (Nome, E-mail e Documento) para acessar.");
-        return;
-    }
+    if(!nome || !email || !doc) return alert("Preencha tudo!");
+    userData = { nome, email, documento: doc.replace(/\D/g, '') };
 
-    // Armazena os dados do cliente globalmente
-    userData = { 
-        nome: nome, 
-        email: email, 
-        documento: doc.replace(/\D/g, '') // Remove pontos e traços para o Asaas
-    };
-
-    // Troca as telas visualmente
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('services-screen').classList.remove('hidden');
-    
-    // Atualiza a saudação com o primeiro nome
-    document.getElementById('user-greeting').innerText = nome.split(' ')[0];
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('user-greeting').innerText = nome;
 }
 
-/**
- * PASSO 2: Seleção de Serviço
- * Abre a área de checkout para o serviço escolhido.
- */
 function selectService(id, name) {
     selectedService = id;
-    document.getElementById('selected-title').innerText = `Configurar: ${name}`;
-    
-    const checkoutArea = document.getElementById('checkout-area');
-    checkoutArea.classList.remove('hidden');
-    
-    const timeSelection = document.getElementById('time-selection');
-    
-    // Se for banheiro, oculta a seleção de tempo e define preço fixo
-    if(id === 'banheiro') {
-        timeSelection.classList.add('hidden');
-        selectedTime = 0; 
-    } else {
-        timeSelection.classList.remove('hidden');
-        selectedTime = 30; // Reseta para 30min por padrão
+    document.getElementById('selected-title').innerText = name;
+    document.getElementById('checkout-area').classList.remove('hidden');
+    document.getElementById('checkout-area').scrollIntoView({ behavior: 'smooth' });
+}
+
+function loadAvailableTimes() {
+    selectedDate = document.getElementById('booking-date').value;
+    const grid = document.getElementById('slots-grid');
+    grid.innerHTML = '';
+
+    // Gera horários das 08:00 às 22:00
+    for(let h = 8; h <= 22; h++) {
+        for(let m of ['00', '30']) {
+            const time = `${h.toString().padStart(2, '0')}:${m}`;
+            const div = document.createElement('div');
+            div.className = 'slot';
+            div.innerText = time;
+            div.onclick = (e) => {
+                document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedStartSlot = time;
+                document.getElementById('duration-selection').classList.remove('hidden');
+                document.getElementById('btn-pay').disabled = false;
+                updateSummary();
+            };
+            grid.appendChild(div);
+        }
     }
-    
-    updatePrice();
-    checkoutArea.scrollIntoView({ behavior: 'smooth' });
 }
 
-/**
- * PASSO 3: Ajuste de Tempo e Preço
- */
-function setTime(minutes) {
-    selectedTime = minutes;
-    
-    // Atualiza visualmente os botões
-    document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+function setTime(min) {
+    selectedTime = min;
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
-    
-    updatePrice();
+    updateSummary();
 }
 
-function updatePrice() {
-    const valor = (selectedService === 'banheiro') 
-        ? precosVisual.banheiro 
-        : precosVisual[selectedService][selectedTime];
-    
+function updateSummary() {
+    const valor = precos[selectedService][selectedTime];
+    document.getElementById('booking-summary').innerText = `${selectedDate} às ${selectedStartSlot} (${selectedTime} min)`;
     document.getElementById('display-price').innerText = `R$ ${valor.toFixed(2).replace('.', ',')}`;
 }
 
-/**
- * PASSO 4: Geração do QR Code (Integração Asaas)
- * Envia os dados coletados para o servidor gerar o PIX.
- */
 async function generatePix() {
-    const btn = event.target;
-    btn.innerText = "Processando...";
+    const btn = document.getElementById('btn-pay');
+    btn.innerText = "Agendando...";
     btn.disabled = true;
 
     try {
         const response = await fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                servico: selectedService, 
-                tempo: selectedTime, 
+            body: JSON.stringify({
+                servico: selectedService,
+                tempo: selectedTime,
+                data: selectedDate,
+                hora: selectedStartSlot,
                 nome: userData.nome,
                 email: userData.email,
                 documento: userData.documento
             })
         });
-
         const data = await response.json();
-
-        if (data.encodedImage) {
-            // Sucesso: Esconde checkout e mostra o QR Code
+        if(data.encodedImage) {
             document.getElementById('checkout-area').classList.add('hidden');
             document.getElementById('pix-area').classList.remove('hidden');
             document.getElementById('qr-code-img').src = `data:image/png;base64,${data.encodedImage}`;
         } else {
-            // Caso o Asaas retorne erro (ex: CPF inválido)
-            alert("Erro: " + (data.details?.errors?.[0]?.description || "Verifique os dados digitados."));
+            alert("Erro: " + data.error);
             btn.disabled = false;
-            btn.innerText = "Gerar QR Code de Acesso";
         }
-    } catch (e) {
-        console.error("Erro na requisição:", e);
-        alert("Erro de conexão com o servidor. Tente novamente.");
-        btn.disabled = false;
-        btn.innerText = "Gerar QR Code de Acesso";
-    }
+    } catch (e) { alert("Erro de rede"); btn.disabled = false; }
 }
 
-/**
- * Função para reiniciar o processo
- */
-function resetUI() {
-    location.reload();
-}
+function resetUI() { location.reload(); }
