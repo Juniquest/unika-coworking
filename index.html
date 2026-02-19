@@ -2,11 +2,11 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ŪNIKA | Inteligência em Coworking</title>
+    <title>ŪNIKA | Coworking 24h</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header><h1>ŪNIKA</h1><p style="color:#d4af37; letter-spacing:5px; font-size:0.7rem; text-align:center;">COWORKING AUTÔNOMO 24H</p></header>
+    <header><h1>ŪNIKA</h1><p class="tagline">COWORKING AUTÔNOMO 24H</p></header>
 
     <div class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR ESPAÇO</button>
@@ -41,21 +41,20 @@
                     <input type="hidden" id="duracao">
 
                     <h2>04. INÍCIO</h2>
-                    <input type="date" id="data" onchange="loadAvailableTimes()" style="color-scheme: dark;">
+                    <input type="date" id="data" onchange="loadAvailableTimes()">
                     <div class="agenda-grid" id="agenda-slots"></div>
                     <input type="hidden" id="hora">
                 </div>
-
                 <button class="btn-pay" onclick="generatePix()">RESERVAR AGORA</button>
             </div>
         </section>
 
         <section id="tab-acessar" class="hidden">
-            <div class="form-box" style="text-align: center; padding: 60px 20px;">
-                <p style="color: #d4af37; letter-spacing: 3px; font-size: 0.9rem; margin-bottom: 30px;">ACESSO AO ESPAÇO</p>
+            <div class="form-box" style="text-align: center;">
+                <p style="color: #d4af37; letter-spacing: 2px; margin-bottom: 20px;">DIGITE SEU CPF PARA ACESSAR</p>
                 <form action="/painel" method="GET">
-                    <input type="text" name="cpf" placeholder="DIGITE SEU CPF CADASTRADO" required style="text-align: center;">
-                    <button type="submit" class="btn-pay" style="margin-top: 40px;">ENTRAR NO PAINEL</button>
+                    <input type="text" name="cpf" placeholder="CPF CADASTRADO" required style="text-align: center;">
+                    <button type="submit" class="btn-pay" style="margin-top: 30px;">ENTRAR AGORA</button>
                 </form>
             </div>
         </section>
@@ -63,11 +62,11 @@
 
     <script src="script.js"></script>
     <script>
-        function switchTab(tab) {
-            document.getElementById('tab-reservar').classList.toggle('hidden', tab !== 'reservar');
-            document.getElementById('tab-acessar').classList.toggle('hidden', tab !== 'acessar');
-            document.querySelectorAll('.tab-btn')[0].classList.toggle('active', tab === 'reservar');
-            document.querySelectorAll('.tab-btn')[1].classList.toggle('active', tab === 'acessar');
+        function switchTab(t) {
+            document.getElementById('tab-reservar').classList.toggle('hidden', t!=='reservar');
+            document.getElementById('tab-acessar').classList.toggle('hidden', t!=='acessar');
+            document.querySelectorAll('.tab-btn')[0].classList.toggle('active', t==='reservar');
+            document.querySelectorAll('.tab-btn')[1].classList.toggle('active', t==='acessar');
         }
     </script>
 </body>
