@@ -24,33 +24,49 @@
             <div id="auth-screen">
                 <div class="auth-card">
                     <h2>Nova Reserva</h2>
-                    <div class="input-group">
-                        <label>Nome Completo</label>
-                        <input type="text" id="regName" placeholder="Seu nome">
-                    </div>
-                    <div class="input-group">
-                        <label>E-mail</label>
-                        <input type="email" id="regEmail" placeholder="seu@email.com">
-                    </div>
-                    <div class="input-group">
-                        <label>CPF</label>
-                        <input type="text" id="regDoc" placeholder="Apenas números">
-                    </div>
+                    <input type="text" id="regName" placeholder="Nome Completo">
+                    <input type="email" id="regEmail" placeholder="E-mail">
+                    <input type="text" id="regDoc" placeholder="CPF (Apenas números)">
                     <button class="btn-primary" onclick="startSession()">Escolher Espaço</button>
                 </div>
             </div>
-            </section>
+
+            <div id="services-screen" class="hidden">
+                <h2 style="text-align:center">Olá, <span id="user-greeting"></span></h2>
+                <div class="grid-services">
+                    <div class="card" onclick="selectService('estacao', 'Estação Individual')"><h3>Estação Individual</h3></div>
+                    <div class="card" onclick="selectService('reuniao', 'Sala de Reunião')"><h3>Sala de Reunião</h3></div>
+                </div>
+            </div>
+
+            <div id="checkout-area" class="hidden">
+                <h2 id="selected-title"></h2>
+                <input type="date" id="booking-date" onchange="loadAvailableTimes()">
+                <div id="slots-grid" class="slots-grid"></div>
+                
+                <div id="duration-selection" class="hidden">
+                    <h3>Duração:</h3>
+                    <div class="grid-duracao">
+                        <button class="time-btn" id="btn-30" onclick="setTime(30)">30 min</button>
+                        <button class="time-btn" id="btn-60" onclick="setTime(60)">1h</button>
+                        <button class="time-btn" id="btn-120" onclick="setTime(120)">2h</button>
+                    </div>
+                </div>
+
+                <div class="total-area">
+                    <p id="booking-summary"></p>
+                    <div id="display-price">R$ 0,00</div>
+                    <button id="btn-pay" class="btn-primary" disabled onclick="generatePix()">Reservar e Pagar</button>
+                </div>
+            </div>
+        </section>
 
         <section id="tab-painel" class="tab-content hidden">
-            <div class="auth-card" style="margin: 0 auto;">
+            <div class="auth-card">
                 <h2>Acesso ao Espaço</h2>
-                <p>Se você já realizou o pagamento, digite seu CPF para liberar as portas e controles.</p>
                 <form action="/painel" method="GET">
-                    <div class="input-group">
-                        <label>CPF Cadastrado</label>
-                        <input type="text" name="cpf" placeholder="Apenas números" required>
-                    </div>
-                    <button type="submit" class="btn-primary">ENTRAR AGORA</button>
+                    <input type="text" name="cpf" placeholder="Seu CPF cadastrado" required>
+                    <button type="submit" class="btn-primary">ENTRAR NO PAINEL</button>
                 </form>
             </div>
         </section>
@@ -61,7 +77,6 @@
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
             if(tab === 'reservar') {
                 document.getElementById('tab-reservar').classList.remove('hidden');
                 document.getElementsByClassName('tab-btn')[0].classList.add('active');
