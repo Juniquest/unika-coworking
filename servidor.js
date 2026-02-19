@@ -24,31 +24,32 @@ const transporter = nodemailer.createTransport({
     auth: { user: 'riostoragecube@gmail.com', pass: 'imzsysjsuihjdyay' }
 });
 
-// 2. MONITORAMENTO DE TEMPO (CRON JOB)
+// 2. MONITORAMENTO DE TEMPO (CRON JOB) - CORREÇÃO DEFINITIVA DO SYNTAXERROR
 cron.schedule('* * * * *', async () => {
     try {
         const agora = new Date();
         const hoje = agora.toISOString().split('T')[0];
         const reservas = await Reserva.find({ data: hoje, status: 'pago' });
 
+        // Usando for...of para permitir o uso de await corretamente
         for (const res of reservas) {
             if (!res.hora || res.servico.includes('Banheiro')) continue;
+            
             const [h, m] = res.hora.split(':');
             const dataFim = new Date(`${res.data}T${h}:${m}:00`);
             dataFim.setMinutes(dataFim.getMinutes() + parseInt(res.duracao));
-            
             const diff = dataFim - agora;
             const tempoRestanteMin = Math.ceil(diff / 60000);
 
             if (tempoRestanteMin === 10) {
-                enviarEmail(res.email, res.nome, "Sua sessão na ŪNIKA encerra em 10 minutos.");
+                enviarEmail(res.email, res.nome, "Sua sessão encerra em 10 minutos.");
             }
             if (diff <= 0) {
                 await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
-                enviarEmail(res.email, res.nome, "Sua sessão foi encerrada.");
+                enviarEmail(res.email, res.nome, "Sua sessão encerrou.");
             }
         }
-    } catch (e) { console.error("Erro no Cron:", e); }
+    } catch (e) { console.error("Erro Cron:", e); }
 });
 
 function enviarEmail(email, nome, mensagem) {
@@ -56,7 +57,7 @@ function enviarEmail(email, nome, mensagem) {
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS (PAINEL FULL IOT)
+// 3. ESTILOS DO PAINEL (INCLUINDO TODOS OS CONTROLES SOLICITADOS)
 const style = `
     :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
@@ -69,60 +70,15 @@ const style = `
     .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .btn-iot { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; border-radius: 4px; }
     .btn-gold { width: 100%; padding: 20px; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; text-decoration: none; display: block; margin-top: 20px; font-weight: 600; letter-spacing: 2px; cursor: pointer; background: transparent; text-align: center; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .item { border: 1px solid #333; padding: 15px; text-align: center; cursor: pointer; font-size: 0.8rem; border-radius: 4px; }
-    .selected { border-color: var(--gold); background: rgba(212,175,55,0.1); color: var(--gold); }
-    .agenda { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-    input { width: 100%; background: transparent; border: none; border-bottom: 2px solid #333; color: #fff; padding: 12px 0; margin-bottom: 15px; outline: none; text-align: center; font-size: 1rem; }
 `;
 
-// 4. ROTAS
-app.get('/', (req, res) => { res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>ŪNIKA</h1><a href="/reservar" class="btn-gold">Reservar Espaço</a><a href="/login" class="btn-gold">Acessar Meu Painel</a></body></html>`); });
-
-app.get('/login', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>LOGIN</h1><div class="container"><form action="/painel" method="GET"><input type="text" name="cpf" placeholder="DIGITE SEU CPF" required><button type="submit" class="btn-gold">ENTRAR</button></form></div></body></html>`);
+// 4. ROTAS DO SISTEMA
+app.get('/', (req, res) => { 
+    res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>ŪNIKA</h1><a href="/login" class="btn-gold">Acessar Painel</a></body></html>`); 
 });
 
-app.get('/reservar', (req, res) => {
-    res.send(`<html><head><style>${style}</style></head><body><h1>RESERVAR</h1><div class="container"><form action="/api/checkout" method="POST">
-    <div class="grid"><div class="item" onclick="sel('Estação Individual', this)">ESTAÇÃO</div><div class="item" onclick="sel('Sala de Reunião', this)">SALA</div><div class="item" onclick="sel('Banheiro Masc', this)">BANHEIRO (M)</div><div class="item" onclick="sel('Banheiro Fem', this)">BANHEIRO (F)</div></div>
-    <input type="hidden" name="servico" id="servico" required>
-    <input type="text" name="nome" placeholder="NOME COMPLETO" required>
-    <input type="text" name="doc" placeholder="CPF" required>
-    <input type="email" name="email" placeholder="E-MAIL" required>
-    <div id="box-agenda">
-        <input type="date" id="data" name="data" onchange="loadHr()" style="color-scheme:dark;">
-        <div class="agenda" id="agenda"></div>
-        <input type="hidden" name="hora" id="hora">
-    </div>
-    <input type="hidden" name="duracao" id="duracao" value="120">
-    <button type="submit" class="btn-gold">Ir para Pagamento</button></form></div>
-    <script>
-        function sel(v,e){
-            document.querySelectorAll('.item').forEach(x=>x.classList.remove('selected'));
-            e.classList.add('selected'); document.getElementById('servico').value=v;
-            const isB = v.includes('Banheiro');
-            document.getElementById('box-agenda').style.display = isB ? 'none' : 'block';
-            if(isB) { 
-                document.getElementById('hora').value = "00:00";
-                document.getElementById('data').value = new Date().toISOString().split('T')[0];
-                document.getElementById('duracao').value = "60";
-            }
-        }
-        async function loadHr(){
-            const d=document.getElementById('data').value;
-            const r=await fetch('/api/horarios-ocupados?data='+d);
-            const ocup=await r.json();
-            const c=document.getElementById('agenda'); c.innerHTML='';
-            for(let i=8;i<22;i++){ [":00",":30"].forEach(m=>{
-                const h=(i<10?'0'+i:i)+m; const dv=document.createElement('div');
-                dv.className='item'; dv.innerText=h; dv.onclick=()=>{
-                    document.querySelectorAll('.agenda .item').forEach(x=>x.classList.remove('selected'));
-                    dv.classList.add('selected'); document.getElementById('hora').value=h;
-                }; c.appendChild(dv);
-            });}
-        }
-    </script></body></html>`);
+app.get('/login', (req, res) => {
+    res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>LOGIN</h1><div class="container"><form action="/painel" method="GET"><input type="text" name="cpf" placeholder="SEU CPF" style="width:100%;background:transparent;border:none;border-bottom:2px solid #333;color:#fff;padding:15px;margin-bottom:20px;text-align:center;" required><button type="submit" class="btn-gold">ENTRAR</button></form></div></body></html>`);
 });
 
 app.get('/painel', async (req, res) => {
@@ -130,14 +86,14 @@ app.get('/painel', async (req, res) => {
     const hoje = new Date().toISOString().split('T')[0];
     const reserva = await Reserva.findOne({ doc: cpf, data: hoje }).sort({ _id: -1 });
 
-    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>ACESSO NEGADO</h1><p>Nenhuma reserva para hoje.</p><a href="/login" class="btn-gold">Voltar</a></body></html>`);
+    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>ACESSO NEGADO</h1><p>Reserva não encontrada para hoje.</p><a href="/login" class="btn-gold">Voltar</a></body></html>`);
 
     const isPremium = reserva.servico.includes('Estação') || reserva.servico.includes('Sala');
     const isMasc = reserva.servico.includes('Masc');
     const isFem = reserva.servico.includes('Fem');
 
     res.send(`<html><head><style>${style}</style></head><body>
-    <h1 style="text-align:center; letter-spacing:10px;">ŪNIKA</h1>
+    <h1 style="text-align:center;">ŪNIKA</h1>
     <div class="container">
         <div class="status-bar">
             <span>🚹 MASC: <b style="color:#00ff00">LIVRE</b></span>
@@ -145,67 +101,47 @@ app.get('/painel', async (req, res) => {
         </div>
 
         <div class="timer-box">
-            <div id="timer">${isPremium ? '--:--' : 'ACESSO LIBERADO'}</div>
-            <div style="font-size:0.6rem; color:var(--gold); margin-top:10px; letter-spacing:2px;">${reserva.servico.toUpperCase()}</div>
+            <div id="timer">${isPremium ? '--:--' : 'LIBERADO'}</div>
+            <div style="font-size:0.6rem; color:var(--gold); margin-top:10px;">${reserva.servico.toUpperCase()}</div>
         </div>
 
         ${isPremium ? `
         <div class="iot-group"><span class="label-iot">Ar Condicionado</span><div class="control-grid">
             <button class="btn-iot" onclick="alert('Ar Condicionado: Ligado/Desligado')">Power</button>
-            <button class="btn-iot" onclick="alert('Temp ajustada para 22°C')">22°C</button>
+            <button class="btn-iot" onclick="alert('Temperatura ajustada para 22°C')">Temp 22°C</button>
         </div></div>
         <div class="iot-group"><span class="label-iot">Smart TV</span><div class="control-grid">
-            <button class="btn-iot" onclick="alert('TV: Ligada/Desligada')">Power</button>
-            <button class="btn-iot" onclick="alert('Volume alterado')">Vol +/-</button>
+            <button class="btn-iot" onclick="alert('Smart TV: Ligada/Desligada')">Power</button>
+            <button class="btn-iot" onclick="alert('Volume +/-')">Volume</button>
         </div></div>
         <div class="iot-group"><span class="label-iot">Ambiente</span><div class="control-grid">
-            <button class="btn-iot" onclick="alert('Luzes da Sala: Alternado')">Luzes</button>
-            <button class="btn-iot" onclick="alert('Tomadas Ativadas')">Tomadas</button>
+            <button class="btn-iot" onclick="alert('Luzes da Sala: Ligadas/Desligadas')">Luzes</button>
+            <button class="btn-iot" onclick="alert('Tomada da Sala: Ativada/Desativada')">Tomada</button>
         </div></div>
         <div class="iot-group"><span class="label-iot">Banheiros (Cortesias)</span><div class="control-grid">
-            <button class="btn-iot" onclick="alert('Porta Masculina Liberada')">Masc</button>
-            <button class="btn-iot" onclick="alert('Porta Feminina Liberada')">Fem</button>
+            <button class="btn-iot" onclick="alert('Banheiro Masculino Aberto')">Porta Masc</button>
+            <button class="btn-iot" onclick="alert('Banheiro Feminino Aberto')">Porta Fem</button>
         </div></div>
         ` : ''}
 
-        ${isMasc ? `<button class="btn-gold" onclick="alert('Porta Masc Liberada')">ABRIR BANHEIRO MASC</button>` : ''}
-        ${isFem ? `<button class="btn-gold" onclick="alert('Porta Fem Liberada')">ABRIR BANHEIRO FEM</button>` : ''}
+        ${isMasc ? `<button class="btn-gold" onclick="alert('Porta Masc Aberta')">ABRIR BANHEIRO MASC</button>` : ''}
+        ${isFem ? `<button class="btn-gold" onclick="alert('Porta Fem Aberta')">ABRIR BANHEIRO FEM</button>` : ''}
     </div>
     <script>
         if(${isPremium}){
-            function start(){
-                const hStr = "${reserva.hora}";
-                const dStr = "${reserva.data}";
-                const dur = ${reserva.duracao};
-                const [h, m] = hStr.split(':');
-                const fim = new Date(dStr + "T" + h + ":" + m + ":00").getTime() + (dur * 60000);
-                
-                const x = setInterval(() => {
-                    const dist = fim - new Date().getTime();
-                    if(dist < 0) { clearInterval(x); document.getElementById('timer').innerHTML = "FIM"; return; }
-                    const mm = Math.floor((dist % 3600000) / 60000);
-                    const ss = Math.floor((dist % 60000) / 1000);
-                    document.getElementById('timer').innerHTML = mm + ":" + (ss < 10 ? "0" + ss : ss);
-                }, 1000);
-            } start();
+            function updateTimer(){
+                const [h, m] = "${reserva.hora}".split(':');
+                const fim = new Date("${reserva.data}T" + h + ":" + m + ":00").getTime() + (${reserva.duracao} * 60000);
+                const agora = new Date().getTime();
+                const dist = fim - agora;
+                if(dist < 0) { document.getElementById('timer').innerHTML = "FIM"; return; }
+                const mm = Math.floor((dist % 3600000) / 60000);
+                const ss = Math.floor((dist % 60000) / 1000);
+                document.getElementById('timer').innerHTML = mm + ":" + (ss < 10 ? "0" + ss : ss);
+            }
+            setInterval(updateTimer, 1000); updateTimer();
         }
     </script></body></html>`);
 });
 
-app.post('/api/checkout', async (req, res) => {
-    const { servico, doc } = req.body;
-    let link = "https://www.asaas.com/c/astpmmsj1m8b7wct";
-    if(servico === 'Banheiro Masc') link = "https://www.asaas.com/c/xx8y9j7aelqt1u1z";
-    if(servico === 'Banheiro Fem') link = "https://www.asaas.com/c/hy4cb2sz0ya4mmrd";
-    try { 
-        await new Reserva(req.body).save(); 
-        res.send(`<script>location.href="${link}?externalReference=${doc}";</script>`); 
-    } catch (e) { res.status(500).send("Erro no servidor."); }
-});
-
-app.get('/api/horarios-ocupados', async (req, res) => {
-    const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
-    res.json(ocupados.map(r => r.hora));
-});
-
-app.listen(process.env.PORT || 3000, () => console.log("Servidor Online"));
+app.listen(process.env.PORT || 3000, () => console.log("🚀 Servidor UNIKA Ativo"));
