@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
     auth: { user: 'riostoragecube@gmail.com', pass: 'imzsysjsuihjdyay' }
 });
 
-// 2. MONITORAMENTO DE TEMPO (CRON JOB) - CORRIGIDO PARA NÃO TRAVAR
+// 2. MONITORAMENTO DE TEMPO (CRON JOB)
 cron.schedule('* * * * *', async () => {
     try {
         const agora = new Date();
@@ -36,14 +36,16 @@ cron.schedule('* * * * *', async () => {
             const [h, m] = res.hora.split(':');
             const dataFim = new Date(`${res.data}T${h}:${m}:00`);
             dataFim.setMinutes(dataFim.getMinutes() + parseInt(res.duracao));
-            const tempoRestanteMin = Math.ceil((dataFim - agora) / 60000);
+            
+            const diff = dataFim - agora;
+            const tempoRestanteMin = Math.ceil(diff / 60000);
 
             if (tempoRestanteMin === 10) {
                 enviarEmail(res.email, res.nome, "Sua sessão na ŪNIKA encerra em 10 minutos.");
             }
-            if (tempoRestanteMin <= 0 && tempoRestanteMin > -2) {
+            if (diff <= 0) {
                 await Reserva.findByIdAndUpdate(res._id, { status: 'finalizado' });
-                enviarEmail(res.email, res.nome, "Sua sessão encerrou.");
+                enviarEmail(res.email, res.nome, "Sua sessão foi encerrada.");
             }
         }
     } catch (e) { console.error("Erro no Cron:", e); }
@@ -54,7 +56,7 @@ function enviarEmail(email, nome, mensagem) {
     transporter.sendMail(mailOptions).catch(err => console.log("Erro e-mail:", err));
 }
 
-// 3. ESTILOS (DASHBOARD COMPLETO RESTAURADO)
+// 3. ESTILOS (PAINEL FULL IOT)
 const style = `
     :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
@@ -65,8 +67,7 @@ const style = `
     .iot-group { margin-bottom: 20px; text-align: left; }
     .label-iot { font-size: 0.6rem; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; display: block; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
     .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn-iot { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; border-radius: 4px; transition: 0.3s; }
-    .btn-iot:active { background: var(--gold); color: #000; }
+    .btn-iot { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; border-radius: 4px; }
     .btn-gold { width: 100%; padding: 20px; border: 1px solid var(--gold); color: var(--gold); text-transform: uppercase; text-decoration: none; display: block; margin-top: 20px; font-weight: 600; letter-spacing: 2px; cursor: pointer; background: transparent; text-align: center; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .item { border: 1px solid #333; padding: 15px; text-align: center; cursor: pointer; font-size: 0.8rem; border-radius: 4px; }
@@ -95,7 +96,7 @@ app.get('/reservar', (req, res) => {
         <input type="hidden" name="hora" id="hora">
     </div>
     <input type="hidden" name="duracao" id="duracao" value="120">
-    <button type="submit" class="btn-gold">Confirmar e Pagar</button></form></div>
+    <button type="submit" class="btn-gold">Ir para Pagamento</button></form></div>
     <script>
         function sel(v,e){
             document.querySelectorAll('.item').forEach(x=>x.classList.remove('selected'));
@@ -129,7 +130,7 @@ app.get('/painel', async (req, res) => {
     const hoje = new Date().toISOString().split('T')[0];
     const reserva = await Reserva.findOne({ doc: cpf, data: hoje }).sort({ _id: -1 });
 
-    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>ACESSO NEGADO</h1><p>Nenhuma reserva ativa para hoje.</p><a href="/login" class="btn-gold">Voltar</a></body></html>`);
+    if (!reserva) return res.send(`<html><head><style>${style}</style></head><body style="justify-content:center;"><h1>ACESSO NEGADO</h1><p>Nenhuma reserva para hoje.</p><a href="/login" class="btn-gold">Voltar</a></body></html>`);
 
     const isPremium = reserva.servico.includes('Estação') || reserva.servico.includes('Sala');
     const isMasc = reserva.servico.includes('Masc');
@@ -149,44 +150,36 @@ app.get('/painel', async (req, res) => {
         </div>
 
         ${isPremium ? `
-        <div class="iot-group">
-            <span class="label-iot">Ar Condicionado</span>
-            <div class="control-grid">
-                <button class="btn-iot" onclick="alert('Ar Condicionado: Ligado/Desligado')">Power</button>
-                <button class="btn-iot" onclick="alert('Temperatura ajustada para 22°C')">Temp 22°C</button>
-            </div>
-        </div>
-        <div class="iot-group">
-            <span class="label-iot">Smart TV</span>
-            <div class="control-grid">
-                <button class="btn-iot" onclick="alert('Smart TV: Ligada/Desligada')">Power</button>
-                <button class="btn-iot" onclick="alert('Volume alterado')">Volume +/-</button>
-            </div>
-        </div>
-        <div class="iot-group">
-            <span class="label-iot">Ambiente</span>
-            <div class="control-grid">
-                <button class="btn-iot" onclick="alert('Luzes: Ligadas/Desligadas')">Luzes</button>
-                <button class="btn-iot" onclick="alert('Tomadas Ativadas')">Tomadas</button>
-            </div>
-        </div>
-        <div class="iot-group">
-            <span class="label-iot">Fechaduras (Cortesias)</span>
-            <div class="control-grid">
-                <button class="btn-iot" onclick="alert('Banheiro Masculino Liberado')">Abrir Masc</button>
-                <button class="btn-iot" onclick="alert('Banheiro Feminino Liberado')">Abrir Fem</button>
-            </div>
-        </div>
+        <div class="iot-group"><span class="label-iot">Ar Condicionado</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Ar Condicionado: Ligado/Desligado')">Power</button>
+            <button class="btn-iot" onclick="alert('Temp ajustada para 22°C')">22°C</button>
+        </div></div>
+        <div class="iot-group"><span class="label-iot">Smart TV</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('TV: Ligada/Desligada')">Power</button>
+            <button class="btn-iot" onclick="alert('Volume alterado')">Vol +/-</button>
+        </div></div>
+        <div class="iot-group"><span class="label-iot">Ambiente</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Luzes da Sala: Alternado')">Luzes</button>
+            <button class="btn-iot" onclick="alert('Tomadas Ativadas')">Tomadas</button>
+        </div></div>
+        <div class="iot-group"><span class="label-iot">Banheiros (Cortesias)</span><div class="control-grid">
+            <button class="btn-iot" onclick="alert('Porta Masculina Liberada')">Masc</button>
+            <button class="btn-iot" onclick="alert('Porta Feminina Liberada')">Fem</button>
+        </div></div>
         ` : ''}
 
-        ${isMasc ? `<div class="iot-group"><span class="label-iot">Controle de Acesso</span><button class="btn-gold" onclick="alert('Porta Banheiro Masculino Liberada')">ABRIR BANHEIRO MASC</button></div>` : ''}
-        ${isFem ? `<div class="iot-group"><span class="label-iot">Controle de Acesso</span><button class="btn-gold" onclick="alert('Porta Banheiro Feminino Liberada')">ABRIR BANHEIRO FEM</button></div>` : ''}
+        ${isMasc ? `<button class="btn-gold" onclick="alert('Porta Masc Liberada')">ABRIR BANHEIRO MASC</button>` : ''}
+        ${isFem ? `<button class="btn-gold" onclick="alert('Porta Fem Liberada')">ABRIR BANHEIRO FEM</button>` : ''}
     </div>
     <script>
         if(${isPremium}){
             function start(){
-                const [h, m] = "${reserva.hora}".split(':');
-                const fim = new Date("${reserva.data}T" + h + ":" + m + ":00").getTime() + (${reserva.duracao} * 60000);
+                const hStr = "${reserva.hora}";
+                const dStr = "${reserva.data}";
+                const dur = ${reserva.duracao};
+                const [h, m] = hStr.split(':');
+                const fim = new Date(dStr + "T" + h + ":" + m + ":00").getTime() + (dur * 60000);
+                
                 const x = setInterval(() => {
                     const dist = fim - new Date().getTime();
                     if(dist < 0) { clearInterval(x); document.getElementById('timer').innerHTML = "FIM"; return; }
@@ -199,11 +192,6 @@ app.get('/painel', async (req, res) => {
     </script></body></html>`);
 });
 
-app.get('/api/horarios-ocupados', async (req, res) => {
-    const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
-    res.json(ocupados.map(r => r.hora));
-});
-
 app.post('/api/checkout', async (req, res) => {
     const { servico, doc } = req.body;
     let link = "https://www.asaas.com/c/astpmmsj1m8b7wct";
@@ -212,7 +200,12 @@ app.post('/api/checkout', async (req, res) => {
     try { 
         await new Reserva(req.body).save(); 
         res.send(`<script>location.href="${link}?externalReference=${doc}";</script>`); 
-    } catch (e) { res.send("Erro."); }
+    } catch (e) { res.status(500).send("Erro no servidor."); }
 });
 
-app.listen(process.env.PORT || 3000);
+app.get('/api/horarios-ocupados', async (req, res) => {
+    const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
+    res.json(ocupados.map(r => r.hora));
+});
+
+app.listen(process.env.PORT || 3000, () => console.log("Servidor Online"));
