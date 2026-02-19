@@ -1,78 +1,58 @@
-let userData = { nome: '', email: '', documento: '' };
-let selectedService = '';
-let selectedDate = '';
-let selectedTime = 30;
-let selectedStartSlot = '';
+function sel(id, val, el) {
+    document.querySelectorAll('.' + id + '-selected').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    el.classList.add(id + '-selected');
+    document.getElementById(id).value = val;
 
-const precos = { 
-    estacao: { 30: 10, 60: 18, 120: 30 }, 
-    reuniao: { 30: 50, 60: 90, 120: 150 } 
-};
-
-function startSession() {
-    const nome = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const doc = document.getElementById('regDoc').value;
-    if(!nome || !email || !doc) return alert("Preencha tudo!");
-
-    userData = { nome, email, documento: doc.replace(/\D/g, '') };
-    document.getElementById('auth-screen').classList.add('hidden');
-    document.getElementById('services-screen').classList.remove('hidden');
-    document.getElementById('user-greeting').innerText = nome.split(' ')[0];
-}
-
-function selectService(id, name) {
-    selectedService = id;
-    document.getElementById('selected-title').innerText = name;
-    document.getElementById('checkout-area').classList.remove('hidden');
-}
-
-async function loadAvailableTimes() {
-    selectedDate = document.getElementById('booking-date').value;
-    const grid = document.getElementById('slots-grid');
-    const response = await fetch(`/api/horarios-ocupados?data=${selectedDate}`);
-    const ocupados = await response.json();
-
-    grid.innerHTML = '';
-    for (let h = 8; h <= 22; h++) {
-        const time = `${h.toString().padStart(2, '0')}:00`;
-        const div = document.createElement('div');
-        div.className = ocupados.includes(time) ? 'slot ocupado' : 'slot';
-        div.innerText = time;
-        if (!ocupados.includes(time)) {
-            div.onclick = function() {
-                document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedStartSlot = time;
-                document.getElementById('duration-selection').classList.remove('hidden');
-                updateSummary();
-            };
+    // Se for banheiro, esconde a agenda
+    if(id === 'servico') {
+        const agenda = document.getElementById('secao-agenda');
+        if(val.includes('Banheiro')) {
+            agenda.style.display = 'none';
+            document.getElementById('duracao').value = '60';
+            document.getElementById('data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('hora').value = "00:00";
+        } else {
+            agenda.style.display = 'block';
         }
-        grid.appendChild(div);
     }
 }
 
-function setTime(min) {
-    selectedTime = min;
-    updateSummary();
-}
+async function loadAvailableTimes() {
+    const data = document.getElementById('data').value;
+    const res = await fetch('/api/horarios-ocupados?data=' + data);
+    const ocupados = await res.json();
+    const cont = document.getElementById('agenda');
+    cont.innerHTML = '';
 
-function updateSummary() {
-    const valor = precos[selectedService][selectedTime];
-    document.getElementById('display-price').innerText = `R$ ${valor.toFixed(2)}`;
-    document.getElementById('btn-pay').disabled = false;
+    for (let i = 8; i < 22; i++) {
+        [":00", ":30"].forEach(m => {
+            const h = (i < 10 ? '0' + i : i) + m;
+            const dv = document.createElement('div');
+            dv.className = 'item-hora' + (ocupados.includes(h) ? ' ocupado' : '');
+            dv.innerText = h;
+            if (!ocupados.includes(h)) dv.onclick = () => sel('hora', h, dv);
+            cont.appendChild(dv);
+        });
+    }
 }
 
 async function generatePix() {
-    const servicoFinal = selectedService === 'estacao' ? 'Estação Individual' : 'Sala de Reunião';
-    const response = await fetch('/api/checkout', {
+    const payload = {
+        nome: document.getElementById('nome').value,
+        doc: document.getElementById('doc').value.replace(/\D/g, ''),
+        email: document.getElementById('email').value,
+        servico: document.getElementById('servico').value,
+        duracao: document.getElementById('duracao').value,
+        data: document.getElementById('data').value,
+        hora: document.getElementById('hora').value
+    };
+
+    const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            nome: userData.nome, email: userData.email, doc: userData.documento,
-            servico: servicoFinal, data: selectedDate, hora: selectedStartSlot, duracao: selectedTime.toString()
-        })
+        body: JSON.stringify(payload)
     });
-    const data = await response.json();
+    const data = await res.json();
     if(data.invoiceUrl) location.href = data.invoiceUrl;
 }
