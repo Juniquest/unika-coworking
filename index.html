@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ŪNIKA | Agenda Inteligente</title>
+    <title>ŪNIKA | Inteligência em Coworking</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -16,92 +15,61 @@
     </header>
 
     <main class="container">
-        <section id="auth-screen">
-            <div class="auth-card">
-                <h2>Bem-vindo ao ŪNIKA</h2>
-                <p>Identifique-se para agendar seu acesso.</p>
-                <div class="input-group">
-                    <label>Nome Completo</label>
-                    <input type="text" id="regName" placeholder="Seu nome">
-                </div>
-                <div class="input-group">
-                    <label>E-mail</label>
-                    <input type="email" id="regEmail" placeholder="seu@email.com">
-                </div>
-                <div class="input-group">
-                    <label>CPF ou RNE</label>
-                    <input type="text" id="regDoc" placeholder="Apenas números">
-                </div>
-                <button class="btn-primary" onclick="startSession()">Acessar Serviços</button>
-            </div>
-        </section>
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR ESPAÇO</button>
+            <button class="tab-btn" onclick="switchTab('painel')">ACESSAR MEU AGENDAMENTO</button>
+        </div>
 
-        <section id="services-screen" class="hidden">
-            <div class="hero">
-                <h2>Olá, <span id="user-greeting"></span>!</h2>
-                <p>Escolha o espaço e o horário da sua reserva.</p>
-            </div>
-
-            <div class="grid-services">
-                <div class="card" onclick="selectService('estacao', 'Estação de Trabalho')">
-                    <div class="card-img img-estacao"></div>
-                    <div class="card-content">
-                        <div class="badge">R$ 10/30min</div>
-                        <h3>Estação de Trabalho</h3>
+        <section id="tab-reservar" class="tab-content">
+            <div id="auth-screen">
+                <div class="auth-card">
+                    <h2>Nova Reserva</h2>
+                    <div class="input-group">
+                        <label>Nome Completo</label>
+                        <input type="text" id="regName" placeholder="Seu nome">
                     </div>
-                </div>
-                <div class="card" onclick="selectService('reuniao', 'Sala de Reunião')">
-                    <div class="card-img img-reuniao"></div>
-                    <div class="card-content">
-                        <div class="badge">R$ 50/30min</div>
-                        <h3>Sala de Reunião</h3>
+                    <div class="input-group">
+                        <label>E-mail</label>
+                        <input type="email" id="regEmail" placeholder="seu@email.com">
                     </div>
+                    <div class="input-group">
+                        <label>CPF</label>
+                        <input type="text" id="regDoc" placeholder="Apenas números">
+                    </div>
+                    <button class="btn-primary" onclick="startSession()">Escolher Espaço</button>
                 </div>
             </div>
+            </section>
 
-            <div id="checkout-area" class="checkout-card hidden">
-                <h3 id="selected-title">Configurar Reserva</h3>
-                
-                <div class="input-group">
-                    <label>Data da Reserva</label>
-                    <input type="date" id="booking-date" onchange="loadAvailableTimes()">
-                </div>
-
-                <div id="time-grid-container">
-                    <label>Horários Disponíveis (Início)</label>
-                    <div class="slots-grid" id="slots-grid"></div>
-                </div>
-
-                <div id="duration-selection" class="hidden">
-                    <label style="display:block; margin-top:20px;">Duração</label>
-                    <div class="time-grid" style="display: flex; gap: 10px;">
-                        <button class="time-btn active" id="btn-30" onclick="setTime(30)">30 min</button>
-                        <button class="time-btn" id="btn-60" onclick="setTime(60)">60 min</button>
-                        <button class="time-btn" id="btn-120" onclick="setTime(120)">120 min</button>
+        <section id="tab-painel" class="tab-content hidden">
+            <div class="auth-card" style="margin: 0 auto;">
+                <h2>Acesso ao Espaço</h2>
+                <p>Se você já realizou o pagamento, digite seu CPF para liberar as portas e controles.</p>
+                <form action="/painel" method="GET">
+                    <div class="input-group">
+                        <label>CPF Cadastrado</label>
+                        <input type="text" name="cpf" placeholder="Apenas números" required>
                     </div>
-                </div>
-
-                <div class="total-area">
-                    <div id="booking-summary" style="margin-bottom: 10px; font-weight: 600; color: #666;">---</div>
-                    <div id="display-price">R$ 0,00</div>
-                </div>
-
-                <div class="warning-box">
-                    ⚠️ Pagamento antecipado. Sem reembolso para cancelamentos. O timer inicia exatamente no horário agendado.
-                </div>
-
-                <button class="btn-primary" id="btn-pay" onclick="generatePix()" disabled>Gerar QR Code de Acesso</button>
-                <button class="btn-cancel" onclick="resetUI()" style="width:100%; background:none; border:none; color:#888; margin-top:10px; cursor:pointer;">Voltar</button>
-            </div>
-
-            <div id="pix-area" class="pix-container hidden" style="text-align: center;">
-                <h3>Acesso quase pronto!</h3>
-                <p>Pague o PIX para confirmar.</p>
-                <img id="qr-code-img" src="" alt="PIX" style="max-width: 250px; margin: 20px auto; display: block; border: 10px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <button class="btn-primary" onclick="resetUI()">Finalizar</button>
+                    <button type="submit" class="btn-primary">ENTRAR AGORA</button>
+                </form>
             </div>
         </section>
     </main>
+
     <script src="script.js"></script>
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            if(tab === 'reservar') {
+                document.getElementById('tab-reservar').classList.remove('hidden');
+                document.getElementsByClassName('tab-btn')[0].classList.add('active');
+            } else {
+                document.getElementById('tab-painel').classList.remove('hidden');
+                document.getElementsByClassName('tab-btn')[1].classList.add('active');
+            }
+        }
+    </script>
 </body>
 </html>
