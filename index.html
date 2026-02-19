@@ -6,71 +6,68 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header><h1>ŪNIKA</h1></header>
+    <header><h1>ŪNIKA</h1><p style="color:#d4af37; letter-spacing:5px; font-size:0.7rem; text-align:center;">COWORKING AUTÔNOMO 24H</p></header>
 
     <div class="tabs-nav">
-        <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR</button>
+        <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR ESPAÇO</button>
         <button class="tab-btn" onclick="switchTab('acessar')">ACESSAR MEU AGENDAMENTO</button>
     </div>
 
-    <section id="tab-reservar" class="container">
-        <div class="form-box">
-            <h2>01. SERVIÇO</h2>
-            <div class="grid-main">
-                <div class="item" onclick="sel('servico','Estação Individual',this)">ESTAÇÃO</div>
-                <div class="item" onclick="sel('servico','Sala de Reunião',this)">SALA</div>
-                <div class="item" onclick="sel('servico','Banheiro Masc',this)">BANHEIRO (M)</div>
-                <div class="item" onclick="sel('servico','Banheiro Fem',this)">BANHEIRO (F)</div>
-            </div>
-            <input type="hidden" id="servico">
-
-            <h2>02. IDENTIFICAÇÃO</h2>
-            <input type="text" id="nome" placeholder="NOME COMPLETO">
-            <input type="text" id="doc" placeholder="CPF">
-            <input type="email" id="email" placeholder="E-MAIL">
-
-            <div id="secao-agenda">
-                <h2>03. TEMPO ESTIMADO</h2>
-                <div class="grid-main">
-                    <div class="item" onclick="sel('duracao','120',this)">120 MIN</div>
-                    <div class="item" onclick="sel('duracao','180',this)">180 MIN</div>
-                    <div class="item" onclick="sel('duracao','240',this)">240 MIN</div>
-                    <div class="item" onclick="sel('duracao','diaria',this)">DIÁRIA</div>
+    <main class="container">
+        <section id="tab-reservar">
+            <div class="form-box">
+                <h2>01. SERVIÇO</h2>
+                <div class="grid">
+                    <div class="item" onclick="sel('servico','Estação Individual',this)">ESTAÇÃO INDIVIDUAL</div>
+                    <div class="item" onclick="sel('servico','Sala de Reunião',this)">SALA DE REUNIÃO</div>
+                    <div class="item" onclick="sel('servico','Banheiro Masc',this)">BANHEIRO MASCULINO</div>
+                    <div class="item" onclick="sel('servico','Banheiro Fem',this)">BANHEIRO FEMININO</div>
                 </div>
-                <input type="hidden" id="duracao">
+                <input type="hidden" id="servico">
 
-                <h2>04. INÍCIO</h2>
-                <input type="date" id="data" onchange="loadAvailableTimes()">
-                <div class="agenda-grid" id="agenda"></div>
-                <input type="hidden" id="hora">
+                <h2>02. IDENTIFICAÇÃO</h2>
+                <input type="text" id="nome" placeholder="NOME COMPLETO">
+                <input type="text" id="doc" placeholder="CPF (Apenas números)">
+                <input type="email" id="email" placeholder="E-MAIL">
+
+                <div id="secao-agenda">
+                    <h2>03. TEMPO ESTIMADO</h2>
+                    <div class="grid">
+                        <div class="item" onclick="sel('duracao','120',this)">120 MIN</div>
+                        <div class="item" onclick="sel('duracao','180',this)">180 MIN</div>
+                        <div class="item" onclick="sel('duracao','240',this)">240 MIN</div>
+                        <div class="item" onclick="sel('duracao','diaria',this)">DIÁRIA</div>
+                    </div>
+                    <input type="hidden" id="duracao">
+
+                    <h2>04. INÍCIO</h2>
+                    <input type="date" id="data" onchange="loadAvailableTimes()" style="color-scheme: dark;">
+                    <div class="agenda-grid" id="agenda-slots"></div>
+                    <input type="hidden" id="hora">
+                </div>
+
+                <button class="btn-pay" onclick="generatePix()">RESERVAR AGORA</button>
             </div>
+        </section>
 
-            <button class="btn-pay" onclick="generatePix()">RESERVAR AGORA</button>
-        </div>
-    </section>
-
-    <section id="tab-acessar" class="container hidden">
-        <div class="form-box" style="text-align:center;">
-            <p style="margin-bottom:20px; color:var(--gold); letter-spacing:2px;">DIGITE SEU CPF</p>
-            <form action="/painel" method="GET">
-                <input type="text" name="cpf" placeholder="Apenas números" required>
-                <button type="submit" class="btn-pay" style="margin-top:30px;">ENTRAR NO PAINEL</button>
-            </form>
-        </div>
-    </section>
+        <section id="tab-acessar" class="hidden">
+            <div class="form-box" style="text-align: center; padding: 60px 20px;">
+                <p style="color: #d4af37; letter-spacing: 3px; font-size: 0.9rem; margin-bottom: 30px;">ACESSO AO ESPAÇO</p>
+                <form action="/painel" method="GET">
+                    <input type="text" name="cpf" placeholder="DIGITE SEU CPF CADASTRADO" required style="text-align: center;">
+                    <button type="submit" class="btn-pay" style="margin-top: 40px;">ENTRAR NO PAINEL</button>
+                </form>
+            </div>
+        </section>
+    </main>
 
     <script src="script.js"></script>
     <script>
         function switchTab(tab) {
-            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if(tab === 'reservar') {
-                document.getElementById('tab-reservar').classList.remove('hidden');
-                document.getElementsByClassName('tab-btn')[0].classList.add('active');
-            } else {
-                document.getElementById('tab-acessar').classList.remove('hidden');
-                document.getElementsByClassName('tab-btn')[1].classList.add('active');
-            }
+            document.getElementById('tab-reservar').classList.toggle('hidden', tab !== 'reservar');
+            document.getElementById('tab-acessar').classList.toggle('hidden', tab !== 'acessar');
+            document.querySelectorAll('.tab-btn')[0].classList.toggle('active', tab === 'reservar');
+            document.querySelectorAll('.tab-btn')[1].classList.toggle('active', tab === 'acessar');
         }
     </script>
 </body>
