@@ -4,7 +4,6 @@ function sel(id, val, el) {
     el.classList.add(id + '-selected');
     document.getElementById(id).value = val;
 
-    // Se for banheiro, esconde a agenda
     if(id === 'servico') {
         const agenda = document.getElementById('secao-agenda');
         if(val.includes('Banheiro')) {
@@ -22,10 +21,11 @@ async function loadAvailableTimes() {
     const data = document.getElementById('data').value;
     const res = await fetch('/api/horarios-ocupados?data=' + data);
     const ocupados = await res.json();
-    const cont = document.getElementById('agenda');
+    const cont = document.getElementById('agenda-slots');
     cont.innerHTML = '';
 
-    for (let i = 8; i < 22; i++) {
+    // GERANDO 24 HORAS
+    for (let i = 0; i <= 23; i++) {
         [":00", ":30"].forEach(m => {
             const h = (i < 10 ? '0' + i : i) + m;
             const dv = document.createElement('div');
@@ -47,6 +47,7 @@ async function generatePix() {
         data: document.getElementById('data').value,
         hora: document.getElementById('hora').value
     };
+    if(!payload.nome || !payload.doc || !payload.hora) return alert("Preencha todos os campos!");
 
     const res = await fetch('/api/checkout', {
         method: 'POST',
