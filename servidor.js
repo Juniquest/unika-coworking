@@ -5,7 +5,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname)); // Faz o servidor ler index.html, script.js e styles.css
+app.use(express.static(__dirname)); 
 
 // 1. CONEXÃO AO BANCO
 mongoose.connect(process.env.MONGO_URI)
@@ -18,14 +18,14 @@ const reservaSchema = new mongoose.Schema({
 });
 const Reserva = mongoose.model('Reserva', reservaSchema);
 
-// 2. PAINEL DO CLIENTE (Com Timer e Controles de Automação)
+// 2. PAINEL DE AUTOMAÇÃO (Visual idêntico ao das suas fotos)
 app.get('/painel', async (req, res) => {
     const { cpf } = req.query;
     const hoje = new Date().toISOString().split('T')[0];
     const reserva = await Reserva.findOne({ doc: cpf, data: hoje, status: 'pago' }).sort({ _id: -1 });
 
     if (!reserva) {
-        return res.send(`<body style="background:#050505;color:#d4af37;text-align:center;padding-top:100px;font-family:sans-serif;"><h1>ACESSO NEGADO</h1><p>Reserva paga não encontrada para hoje.</p><a href="/" style="color:#fff;">Voltar</a></body>`);
+        return res.send(`<body style="background:#050505;color:#d4af37;text-align:center;padding-top:100px;font-family:sans-serif;"><h1>ACESSO NEGADO</h1><p>Reserva ativa não encontrada para hoje.</p><a href="/" style="color:#fff;text-decoration:none;">VOLTAR</a></body>`);
     }
 
     res.send(`
@@ -33,41 +33,46 @@ app.get('/painel', async (req, res) => {
     <html lang="pt-br">
     <head>
         <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ŪNIKA | Painel</title>
+        <title>ŪNIKA | Painel de Controle</title>
         <style>
-            :root { --gold: #d4af37; --bg: #050505; --card: #111; --text: #fff; }
-            body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; }
-            .container { width: 90%; max-width: 450px; background: var(--card); padding: 25px; border: 1px solid #222; border-radius: 8px; margin-top: 5vh; text-align: center; }
-            .timer-box { border: 1px solid var(--gold); padding: 20px; margin-bottom: 20px; }
-            #timer { font-size: 3rem; color: var(--gold); font-weight: bold; letter-spacing: 5px; }
-            h2 { color: var(--gold); font-size: 0.8rem; text-transform: uppercase; margin: 20px 0 10px; border-left: 2px solid var(--gold); padding-left: 10px; text-align: left; }
-            .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .btn-iot { background: transparent; border: 1px solid #333; color: #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; }
+            :root { --gold: #d4af37; --bg: #050505; --card: #111; }
+            body { background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+            h1 { letter-spacing: 10px; font-weight: 300; margin-top: 40px; }
+            .panel-card { background: var(--card); border: 1px solid #222; padding: 30px; border-radius: 4px; width: 100%; max-width: 400px; text-align: center; }
+            .timer-box { border: 1px solid var(--gold); padding: 20px; margin: 20px 0; }
+            #timer { font-size: 3.5rem; color: var(--gold); font-weight: bold; }
+            h2 { color: var(--gold); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; text-align: left; border-left: 3px solid var(--gold); padding-left: 10px; margin: 30px 0 15px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .btn-iot { background: transparent; border: 1px solid #333; color: #fff; padding: 18px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
             .btn-iot.active { border-color: var(--gold); color: var(--gold); background: rgba(212,175,55,0.1); }
-            .btn-exit { margin-top: 30px; display: block; color: #666; text-decoration: none; font-size: 0.8rem; }
+            .info-user { font-size: 0.6rem; color: #444; margin-top: 20px; letter-spacing: 1px; }
         </style>
     </head>
     <body>
-        <div class="container">
-            <h1>ŪNIKA</h1>
+        <h1>ŪNIKA</h1>
+        <div class="panel-card">
             <div class="timer-box">
+                <div style="font-size:0.6rem; color:#666; margin-bottom:5px;">TEMPO RESTANTE</div>
                 <div id="timer">--:--</div>
-                <p style="font-size:0.7rem; color:var(--gold)">${reserva.servico.toUpperCase()}</p>
+                <div style="color:var(--gold); font-size:0.8rem; margin-top:5px;">${reserva.servico.toUpperCase()}</div>
             </div>
-            <h2>Controles de Automação</h2>
-            <div class="control-grid">
-                <button class="btn-iot" onclick="this.classList.toggle('active')">💡 Luzes</button>
+
+            <h2>01. Automação</h2>
+            <div class="grid">
+                <button class="btn-iot" onclick="this.classList.toggle('active')">💡 Lâmpadas</button>
                 <button class="btn-iot" onclick="this.classList.toggle('active')">❄️ Ar Condicionado</button>
                 <button class="btn-iot" onclick="this.classList.toggle('active')">📺 Televisão</button>
                 <button class="btn-iot" onclick="this.classList.toggle('active')">🔌 Tomadas</button>
             </div>
-            <h2>Acessos</h2>
-            <div class="control-grid">
-                <button class="btn-iot" onclick="alert('Porta Masculina Liberada')">🚹 Masc</button>
-                <button class="btn-iot" onclick="alert('Porta Feminina Liberada')">🚺 Fem</button>
+
+            <h2>02. Acessos Banheiro</h2>
+            <div class="grid">
+                <button class="btn-iot" onclick="alert('Porta Masculina Destrancada')">🚹 Masculino</button>
+                <button class="btn-iot" onclick="alert('Porta Feminina Destrancada')">🚺 Feminino</button>
             </div>
-            <a href="/" class="btn-exit">SAIR DO PAINEL</a>
+            <div class="info-user">CLIENTE: ${reserva.nome.toUpperCase()}</div>
         </div>
+
         <script>
             function startTimer(duration, start) {
                 const display = document.querySelector('#timer');
@@ -75,24 +80,24 @@ app.get('/painel', async (req, res) => {
                 setInterval(() => {
                     const dist = end - new Date().getTime();
                     if (dist < 0) { display.innerHTML = "EXPIRADO"; return; }
+                    const h = Math.floor(dist / 3600000);
                     const m = Math.floor((dist % 3600000) / 60000);
                     const s = Math.floor((dist % 60000) / 1000);
-                    display.innerHTML = m + ":" + (s < 10 ? "0"+s : s);
+                    display.innerHTML = (h > 0 ? h + ":" : "") + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
                 }, 1000);
             }
-            startTimer(parseInt("${reserva.duracao}"), new Date("${reserva.data}T${reserva.hora}:00"));
+            startTimer(parseInt("${reserva.duracao}") || 60, new Date("${reserva.data}T${reserva.hora}:00"));
         </script>
     </body>
     </html>`);
 });
 
-// 3. API DE HORÁRIOS
+// 3. API DE HORÁRIOS E CHECKOUT
 app.get('/api/horarios-ocupados', async (req, res) => {
     const ocupados = await Reserva.find({ data: req.query.data, status: 'pago' }).select('hora -_id');
     res.json(ocupados.map(r => r.hora));
 });
 
-// 4. CHECKOUT (Gera link e retorna JSON para o Script)
 app.post('/api/checkout', async (req, res) => {
     const { doc, servico, duracao } = req.body;
     const links = {
@@ -104,7 +109,6 @@ app.post('/api/checkout', async (req, res) => {
         "diaria": "https://www.asaas.com/c/9yyhtmtds2u0je33"
     };
     const linkFinal = (links[servico] || links[duracao] || links["120"]) + "?externalReference=" + doc;
-    
     try {
         await new Reserva(req.body).save();
         res.json({ invoiceUrl: linkFinal });
