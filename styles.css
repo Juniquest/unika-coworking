@@ -240,3 +240,37 @@ input {
   font-size: 16px;
   letter-spacing: 1px;
 }
+/* ===== ANIMAÇÃO PREMIUM DO RESUMO ===== */
+.resumo{
+  /* mantém seu visual atual, só adiciona animação */
+  transform: translateY(10px);
+  opacity: 0;
+  filter: blur(2px);
+  transition: opacity .28s ease, transform .28s ease, filter .28s ease;
+  will-change: opacity, transform, filter;
+}
+
+/* quando estiver visível */
+.resumo.show{
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* glow dourado suave */
+.resumo.show{
+  box-shadow:
+    0 0 0 1px rgba(212,175,55,.18),
+    0 12px 35px rgba(0,0,0,.55);
+}
+
+/* animação de “pulse” bem leve no TOTAL */
+@keyframes goldPulse {
+  0%   { transform: scale(1);   text-shadow: 0 0 0 rgba(212,175,55,0); }
+  50%  { transform: scale(1.02); text-shadow: 0 0 18px rgba(212,175,55,.25); }
+  100% { transform: scale(1);   text-shadow: 0 0 0 rgba(212,175,55,0); }
+}
+
+.resumo.show .resumo-row.total strong{
+  animation: goldPulse .55s ease;
+}
