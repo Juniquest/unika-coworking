@@ -4,114 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ŪNIKA | Coworking 24h</title>
+
 <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<header class="hero">
+<section class="hero">
   <div class="hero-content">
     <h1>ŪNIKA</h1>
-    <p class="tagline">COWORKING AUTÔNOMO 24H</p>
-    <a href="#tab-reservar" class="hero-cta">RESERVAR</a>
+    <p>COWORKING AUTÔNOMO 24H</p>
+    <a href="#reserva" class="hero-cta">RESERVAR</a>
   </div>
-</header>
-
-<div class="tabs-nav">
-  <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR ESPAÇO</button>
-  <button class="tab-btn" onclick="switchTab('acessar')">ACESSAR MEU AGENDAMENTO</button>
-</div>
-
-<main class="container">
-
-<section id="tab-reservar">
-<div class="form-box">
-
-<h2>01. SERVIÇO</h2>
-<div class="grid">
-  <div class="item" onclick="sel('servico','Estação Individual',this)">ESTAÇÃO INDIVIDUAL</div>
-  <div class="item" onclick="sel('servico','Sala de Reunião',this)">SALA DE REUNIÃO</div>
-  <div class="item" onclick="sel('servico','Banheiro Masc',this)">BANHEIRO MASCULINO</div>
-  <div class="item" onclick="sel('servico','Banheiro Fem',this)">BANHEIRO FEMININO</div>
-</div>
-<input type="hidden" id="servico">
-
-<h2>02. IDENTIFICAÇÃO</h2>
-<input id="nome" placeholder="NOME COMPLETO">
-<input id="doc" placeholder="CPF (Apenas números)">
-<input id="email" placeholder="E-MAIL">
-
-<div id="secao-agenda">
-
-<h2>03. TEMPO ESTIMADO</h2>
-<div class="grid">
-
-<div class="item" data-duracao="120" onclick="sel('duracao','120',this)">
-<span class="time-label">120 MIN</span>
-<span class="time-price">—</span>
-</div>
-
-<div class="item" data-duracao="180" onclick="sel('duracao','180',this)">
-<span class="time-label">180 MIN</span>
-<span class="time-price">—</span>
-</div>
-
-<div class="item" data-duracao="240" onclick="sel('duracao','240',this)">
-<span class="time-label">240 MIN</span>
-<span class="time-price">—</span>
-</div>
-
-<div class="item" data-duracao="diaria" onclick="sel('duracao','diaria',this)">
-<span class="time-label">DIÁRIA</span>
-<span class="time-price">—</span>
-</div>
-
-</div>
-
-<input type="hidden" id="duracao">
-
-<h2>04. INÍCIO</h2>
-<input type="date" id="data" onchange="loadAvailableTimes()">
-<div class="agenda-grid" id="agenda-slots"></div>
-<input type="hidden" id="hora">
-
-</div>
-
-<div id="resumo-box" class="resumo hidden">
-<div class="resumo-row"><span>SERVIÇO</span><strong id="r-servico">—</strong></div>
-<div class="resumo-row"><span>DURAÇÃO</span><strong id="r-duracao">—</strong></div>
-<div class="resumo-row"><span>INÍCIO</span><strong id="r-inicio">—</strong></div>
-<div class="resumo-row total"><span>TOTAL</span><strong id="r-total">R$ 0,00</strong></div>
-
-<div class="resumo-actions">
-<button class="btn-secondary" onclick="editarResumo()">EDITAR</button>
-<button class="btn-pay" onclick="confirmarEGerarPix()">CONFIRMAR E GERAR PIX</button>
-</div>
-</div>
-
-<button class="btn-pay" onclick="mostrarResumo()">RESERVAR AGORA</button>
-
-</div>
 </section>
 
-<section id="tab-acessar" class="hidden">
-<div class="form-box" style="text-align:center">
-<input placeholder="CPF CADASTRADO">
-<button class="btn-pay">ENTRAR</button>
-</div>
+<section id="reserva" class="container">
+  <h2>Reserva rápida</h2>
+
+  <input placeholder="Nome completo">
+  <input placeholder="CPF">
+  <input placeholder="E-mail">
+
+  <button class="hero-cta">Continuar</button>
 </section>
-
-</main>
-
-<script src="script.js"></script>
-
-<script>
-function switchTab(t){
-document.getElementById("tab-reservar").classList.toggle("hidden",t!=="reservar");
-document.getElementById("tab-acessar").classList.toggle("hidden",t!=="acessar");
-document.querySelectorAll(".tab-btn")[0].classList.toggle("active",t==="reservar");
-document.querySelectorAll(".tab-btn")[1].classList.toggle("active",t==="acessar");
-}
-</script>
 
 </body>
 </html>
