@@ -20,7 +20,7 @@ body{
 header{
   min-height:80vh;
   background:
-    linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),
+    linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
     url("/assets/hero-unika.png") center/cover no-repeat;
   display:flex;
   flex-direction:column;
@@ -29,11 +29,20 @@ header{
   text-align:center;
 }
 
+/* deixa a imagem um pouco mais clara sem distorcer */
+header::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,.04);
+  pointer-events:none;
+}
+
 header h1{
   letter-spacing:14px;
   font-weight:300;
   font-size:3rem;
-  color:var(--gold);
+  color:#d4af37;
   margin:0;
 }
 
