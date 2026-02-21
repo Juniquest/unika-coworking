@@ -97,7 +97,7 @@ async function loadAvailableTimes() {
   }
 }
 
-// ====== RESUMO ======
+// ====== RESUMO (COM ANIMAÇÃO) ======
 function mostrarResumo() {
   const payload = {
     nome: document.getElementById('nome').value,
@@ -118,19 +118,25 @@ function mostrarResumo() {
   document.getElementById("r-servico").textContent = payload.servico;
   document.getElementById("r-duracao").textContent =
     payload.duracao === "diaria" ? "DIÁRIA" : `${payload.duracao} MIN`;
-
   document.getElementById("r-inicio").textContent =
     `${payload.data} • ${payload.hora}`;
-
   document.getElementById("r-total").textContent = fmtBRL(calcTotal());
 
   const box = document.getElementById("resumo-box");
   box.classList.remove("hidden");
+
+  requestAnimationFrame(() => box.classList.add("show"));
+
   box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function editarResumo() {
-  document.getElementById("resumo-box").classList.add("hidden");
+  const box = document.getElementById("resumo-box");
+  box.classList.remove("show");
+
+  setTimeout(() => {
+    box.classList.add("hidden");
+  }, 280);
 }
 
 // ====== PIX ======
