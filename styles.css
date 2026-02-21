@@ -4,72 +4,76 @@
   --card:#111;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{ box-sizing:border-box; font-family:'Inter',sans-serif; }
 
 body{
-  margin:0;
   background:var(--bg);
   color:#fff;
-  font-family:Inter,system-ui,sans-serif;
-}
-
-/* HERO */
-
-header{
-  min-height:80vh;
-  background:
-    linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
-    url("/assets/hero-unika.png") center/cover no-repeat;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
-}
-
-/* deixa a imagem um pouco mais clara sem distorcer */
-header::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:rgba(255,255,255,.04);
-  pointer-events:none;
-}
-
-header h1{
-  letter-spacing:14px;
-  font-weight:300;
-  font-size:3rem;
-  color:#d4af37;
   margin:0;
+}
+
+/* HERO (sem amarelar) */
+.hero{
+  min-height:78vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:60px 0;
+
+  /* escuro premium + imagem */
+  background:
+    linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.55)),
+    radial-gradient(circle at 50% 40%, rgba(0,0,0,.15), rgba(0,0,0,.85)),
+    url("/assets/hero-unika.png");
+
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+.hero-inner h1{
+  letter-spacing:15px;
+  font-weight:300;
+  font-size:2.8rem;
+  margin:0;
+  color:var(--gold);
 }
 
 .tagline{
-  margin-top:10px;
-  letter-spacing:3px;
-  font-size:.9rem;
+  margin:18px 0 0;
+  letter-spacing:4px;
   opacity:.9;
 }
 
-header .btn-pay{
-  max-width:260px;
-  margin-top:35px;
+/* botão do hero SEM azul/roxo */
+.hero-cta{
+  display:inline-block;
+  margin-top:28px;
+  padding:16px 46px;
+  border:1px solid var(--gold);
+  color:var(--gold);
+  text-decoration:none;
+  letter-spacing:4px;
+  font-weight:700;
+  background:transparent;
+  transition:.25s ease;
+}
+.hero-cta:visited{ color:var(--gold); }
+.hero-cta:hover{
+  background:var(--gold);
+  color:#000;
 }
 
-/* CONTAINER */
-
+/* Layout geral */
 .container{
   width:92%;
   max-width:500px;
   margin:0 auto;
-  padding-bottom:70px;
+  padding-bottom:60px;
 }
 
-.hidden{
-  display:none;
-}
+.hidden{ display:none; }
 
 .form-box{
   background:var(--card);
@@ -78,19 +82,15 @@ header .btn-pay{
   border-radius:4px;
 }
 
-/* TÍTULOS */
-
 h2{
   color:var(--gold);
-  font-size:.95rem;
+  font-size:1.1rem;
   text-transform:uppercase;
   letter-spacing:3px;
   border-left:4px solid var(--gold);
-  padding-left:14px;
+  padding-left:15px;
   margin:40px 0 20px;
 }
-
-/* INPUTS */
 
 input{
   width:100%;
@@ -98,13 +98,11 @@ input{
   border:none;
   border-bottom:2px solid #333;
   color:#fff;
-  padding:14px 0;
+  padding:15px 0;
   margin-bottom:20px;
-  font-size:1rem;
+  font-size:1.05rem;
   outline:none;
 }
-
-/* GRID */
 
 .grid{
   display:grid;
@@ -112,39 +110,24 @@ input{
   gap:12px;
 }
 
-/* CARDS */
-
 .item{
   border:1px solid #333;
   padding:18px;
   text-align:center;
   cursor:pointer;
-  font-size:.8rem;
-  font-weight:600;
-  letter-spacing:1px;
+  font-size:.9rem;
+  font-weight:800;
   transition:.25s ease;
-}
-
-.item:hover{
-  border-color:rgba(212,175,55,.5);
 }
 
 .item.selected{
   border-color:var(--gold);
-  background:rgba(212,175,55,.08);
+  background:rgba(212,175,55,.10);
   color:var(--gold);
 }
 
-/* PREÇOS DURAÇÃO */
-
-.time-price{
-  display:block;
-  margin-top:6px;
-  font-size:.75rem;
-  opacity:.9;
-}
-
-/* AGENDA */
+.time-label{ font-size:.95rem; }
+.time-price{ margin-top:6px; font-size:.95rem; opacity:.95; }
 
 .agenda-grid{
   display:grid;
@@ -159,60 +142,49 @@ input{
 
 .item-hora{
   border:1px solid #222;
-  padding:14px 5px;
+  padding:15px 5px;
   text-align:center;
-  font-size:.8rem;
+  font-size:.9rem;
   cursor:pointer;
-  transition:.2s;
-}
-
-.item-hora:hover{
-  border-color:rgba(212,175,55,.4);
+  color:#fff;
 }
 
 .item-hora.selected{
   border-color:var(--gold);
   color:var(--gold);
-  font-weight:600;
+  font-weight:800;
 }
 
 .item-hora.ocupado{
-  opacity:.12;
+  opacity:.10;
   cursor:not-allowed;
 }
 
-/* BOTÃO PRINCIPAL — MENOR E PREMIUM */
-
-.btn-pay,
-header a,
-header .btn{
-  border:1px solid #d4af37;
-  color:#d4af37;
+.btn-pay{
+  width:100%;
+  padding:22px;
   background:transparent;
-  padding:16px 38px;
-  font-size:.85rem;
-  letter-spacing:4px;
+  border:1px solid var(--gold);
+  color:var(--gold);
   text-transform:uppercase;
-  text-decoration:none;
-  transition:.3s ease;
-  display:inline-block;
+  letter-spacing:4px;
+  cursor:pointer;
+  font-weight:800;
+  font-size:1rem;
+  margin-top:30px;
+  transition:.25s ease;
 }
 
-.btn-pay:hover,
-header a:hover,
-header .btn:hover{
-  background:#d4af37;
+.btn-pay:hover{
+  background:var(--gold);
   color:#000;
 }
-}
-
-/* TABS */
 
 .tabs-nav{
   display:flex;
   justify-content:center;
   gap:10px;
-  margin:40px 0 30px;
+  margin: -28px 0 30px; /* sobe um pouco sobre o hero (igual estava bonito) */
 }
 
 .tab-btn{
@@ -221,7 +193,7 @@ header .btn:hover{
   color:#666;
   padding:12px 20px;
   cursor:pointer;
-  font-size:.7rem;
+  font-size:.75rem;
   letter-spacing:1px;
 }
 
@@ -230,8 +202,7 @@ header .btn:hover{
   border-color:var(--gold);
 }
 
-/* RESUMO PREMIUM */
-
+/* Resumo */
 .resumo{
   margin-top:18px;
   border:1px solid rgba(255,255,255,.12);
@@ -248,14 +219,8 @@ header .btn:hover{
   letter-spacing:1px;
 }
 
-.resumo-row span{
-  opacity:.75;
-  font-size:12px;
-}
-
-.resumo-row strong{
-  font-size:13px;
-}
+.resumo-row span{ opacity:.75; font-size:12px; }
+.resumo-row strong{ font-size:13px; }
 
 .resumo-row.total{
   border-bottom:none;
@@ -264,10 +229,9 @@ header .btn:hover{
 
 .resumo-row.total strong{
   color:var(--gold);
-  font-size:15px;
+  font-size:16px;
+  letter-spacing:1px;
 }
-
-/* BOTÕES DO RESUMO */
 
 .resumo-actions{
   display:flex;
@@ -277,13 +241,11 @@ header .btn:hover{
 
 .btn-secondary{
   flex:1;
-  padding:14px 16px;
+  padding:14px 18px;
   background:transparent;
   border:1px solid rgba(255,255,255,.18);
   color:#fff;
-  letter-spacing:1px;
-  font-size:.75rem;
-  font-weight:600;
+  letter-spacing:2px;
   cursor:pointer;
   transition:.2s ease;
 }
