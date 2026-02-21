@@ -110,3 +110,37 @@ async function generatePix() {
   const data = await res.json();
   if (data.invoiceUrl) location.href = data.invoiceUrl;
 }
+function mostrarResumo() {
+  const payload = {
+    nome: document.getElementById('nome').value,
+    doc: document.getElementById('doc').value.replace(/\D/g, ''),
+    email: document.getElementById('email').value,
+    servico: document.getElementById('servico').value,
+    duracao: document.getElementById('duracao').value,
+    data: document.getElementById('data').value,
+    hora: document.getElementById('hora').value
+  };
+
+  if (!payload.servico) return alert("Selecione o serviço!");
+  if (!payload.nome || !payload.doc || !payload.email) return alert("Preencha nome, CPF e e-mail!");
+  if (!payload.duracao) return alert("Selecione o tempo estimado!");
+  if (!payload.data) return alert("Selecione a data!");
+  if (!payload.hora) return alert("Selecione o horário!");
+
+  document.getElementById("r-servico").textContent = payload.servico;
+  document.getElementById("r-duracao").textContent = (payload.duracao === "diaria") ? "DIÁRIA" : `${payload.duracao} MIN`;
+  document.getElementById("r-inicio").textContent = `${payload.data} • ${payload.hora}`;
+  document.getElementById("r-total").textContent = fmtBRL(calcTotal());
+
+  const box = document.getElementById("resumo-box");
+  box.classList.remove("hidden");
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function editarResumo() {
+  document.getElementById("resumo-box").classList.add("hidden");
+}
+
+function confirmarEGerarPix() {
+  generatePix();
+}
