@@ -1,11 +1,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+
 const app = express();
+
+// ✅ libera arquivos estáticos (css, js, imagens etc)
+app.use(express.static(__dirname));
+
+// ✅ libera especificamente a pasta /assets
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname)); 
 
 // CONEXÃO MONGO
 mongoose.connect(process.env.MONGO_URI);
