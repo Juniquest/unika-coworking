@@ -66,7 +66,20 @@
    ... resumo que te mandei ...
 </div>
 
-<button class="btn-pay" onclick="mostrarResumo()">RESERVAR AGORA</button>
+<!-- RESUMO (aparece antes do PIX) -->
+<div id="resumo-box" class="resumo hidden">
+  <div class="resumo-row"><span>SERVIÇO</span><strong id="r-servico">—</strong></div>
+  <div class="resumo-row"><span>DURAÇÃO</span><strong id="r-duracao">—</strong></div>
+  <div class="resumo-row"><span>INÍCIO</span><strong id="r-inicio">—</strong></div>
+  <div class="resumo-row total"><span>TOTAL</span><strong id="r-total">R$ 0,00</strong></div>
+
+  <div class="resumo-actions">
+    <button class="btn-secondary" type="button" onclick="editarResumo()">EDITAR</button>
+    <button class="btn-pay" type="button" onclick="confirmarEGerarPix()">CONFIRMAR E GERAR PIX</button>
+  </div>
+</div>
+
+<button class="btn-pay" type="button" onclick="mostrarResumo()">RESERVAR AGORA</button>
             </div>
         </section>
 
