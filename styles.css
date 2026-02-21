@@ -4,76 +4,63 @@
   --card:#111;
 }
 
-*{ box-sizing:border-box; font-family:'Inter',sans-serif; }
+*{
+  box-sizing:border-box;
+}
 
 body{
+  margin:0;
   background:var(--bg);
   color:#fff;
-  margin:0;
+  font-family:Inter,system-ui,sans-serif;
 }
 
-/* HERO (sem amarelar) */
-.hero{
-  min-height:78vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:60px 0;
+/* HERO */
 
-  /* escuro premium + imagem */
+header{
+  min-height:80vh;
   background:
-    linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.55)),
-    radial-gradient(circle at 50% 40%, rgba(0,0,0,.15), rgba(0,0,0,.85)),
-    url("/assets/hero-unika.png");
-
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
+    linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.65)),
+    url("/assets/hero-unika.png") center/cover no-repeat;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
 }
 
-.hero-inner h1{
-  letter-spacing:15px;
+header h1{
+  letter-spacing:14px;
   font-weight:300;
-  font-size:2.8rem;
-  margin:0;
+  font-size:3rem;
   color:var(--gold);
+  margin:0;
 }
 
 .tagline{
-  margin:18px 0 0;
-  letter-spacing:4px;
+  margin-top:10px;
+  letter-spacing:3px;
+  font-size:.9rem;
   opacity:.9;
 }
 
-/* botão do hero SEM azul/roxo */
-.hero-cta{
-  display:inline-block;
-  margin-top:28px;
-  padding:16px 46px;
-  border:1px solid var(--gold);
-  color:var(--gold);
-  text-decoration:none;
-  letter-spacing:4px;
-  font-weight:700;
-  background:transparent;
-  transition:.25s ease;
-}
-.hero-cta:visited{ color:var(--gold); }
-.hero-cta:hover{
-  background:var(--gold);
-  color:#000;
+header .btn-pay{
+  max-width:260px;
+  margin-top:35px;
 }
 
-/* Layout geral */
+/* CONTAINER */
+
 .container{
   width:92%;
   max-width:500px;
   margin:0 auto;
-  padding-bottom:60px;
+  padding-bottom:70px;
 }
 
-.hidden{ display:none; }
+.hidden{
+  display:none;
+}
 
 .form-box{
   background:var(--card);
@@ -82,15 +69,19 @@ body{
   border-radius:4px;
 }
 
+/* TÍTULOS */
+
 h2{
   color:var(--gold);
-  font-size:1.1rem;
+  font-size:.95rem;
   text-transform:uppercase;
   letter-spacing:3px;
   border-left:4px solid var(--gold);
-  padding-left:15px;
+  padding-left:14px;
   margin:40px 0 20px;
 }
+
+/* INPUTS */
 
 input{
   width:100%;
@@ -98,11 +89,13 @@ input{
   border:none;
   border-bottom:2px solid #333;
   color:#fff;
-  padding:15px 0;
+  padding:14px 0;
   margin-bottom:20px;
-  font-size:1.05rem;
+  font-size:1rem;
   outline:none;
 }
+
+/* GRID */
 
 .grid{
   display:grid;
@@ -110,24 +103,39 @@ input{
   gap:12px;
 }
 
+/* CARDS */
+
 .item{
   border:1px solid #333;
   padding:18px;
   text-align:center;
   cursor:pointer;
-  font-size:.9rem;
-  font-weight:800;
+  font-size:.8rem;
+  font-weight:600;
+  letter-spacing:1px;
   transition:.25s ease;
+}
+
+.item:hover{
+  border-color:rgba(212,175,55,.5);
 }
 
 .item.selected{
   border-color:var(--gold);
-  background:rgba(212,175,55,.10);
+  background:rgba(212,175,55,.08);
   color:var(--gold);
 }
 
-.time-label{ font-size:.95rem; }
-.time-price{ margin-top:6px; font-size:.95rem; opacity:.95; }
+/* PREÇOS DURAÇÃO */
+
+.time-price{
+  display:block;
+  margin-top:6px;
+  font-size:.75rem;
+  opacity:.9;
+}
+
+/* AGENDA */
 
 .agenda-grid{
   display:grid;
@@ -142,36 +150,42 @@ input{
 
 .item-hora{
   border:1px solid #222;
-  padding:15px 5px;
+  padding:14px 5px;
   text-align:center;
-  font-size:.9rem;
+  font-size:.8rem;
   cursor:pointer;
-  color:#fff;
+  transition:.2s;
+}
+
+.item-hora:hover{
+  border-color:rgba(212,175,55,.4);
 }
 
 .item-hora.selected{
   border-color:var(--gold);
   color:var(--gold);
-  font-weight:800;
+  font-weight:600;
 }
 
 .item-hora.ocupado{
-  opacity:.10;
+  opacity:.12;
   cursor:not-allowed;
 }
 
+/* BOTÃO PRINCIPAL — MENOR E PREMIUM */
+
 .btn-pay{
   width:100%;
-  padding:22px;
+  padding:18px;
   background:transparent;
   border:1px solid var(--gold);
   color:var(--gold);
   text-transform:uppercase;
-  letter-spacing:4px;
+  letter-spacing:2px;
   cursor:pointer;
-  font-weight:800;
-  font-size:1rem;
-  margin-top:30px;
+  font-weight:700;
+  font-size:.85rem;
+  margin-top:25px;
   transition:.25s ease;
 }
 
@@ -180,11 +194,13 @@ input{
   color:#000;
 }
 
+/* TABS */
+
 .tabs-nav{
   display:flex;
   justify-content:center;
   gap:10px;
-  margin: -28px 0 30px; /* sobe um pouco sobre o hero (igual estava bonito) */
+  margin:40px 0 30px;
 }
 
 .tab-btn{
@@ -193,7 +209,7 @@ input{
   color:#666;
   padding:12px 20px;
   cursor:pointer;
-  font-size:.75rem;
+  font-size:.7rem;
   letter-spacing:1px;
 }
 
@@ -202,7 +218,8 @@ input{
   border-color:var(--gold);
 }
 
-/* Resumo */
+/* RESUMO PREMIUM */
+
 .resumo{
   margin-top:18px;
   border:1px solid rgba(255,255,255,.12);
@@ -219,8 +236,14 @@ input{
   letter-spacing:1px;
 }
 
-.resumo-row span{ opacity:.75; font-size:12px; }
-.resumo-row strong{ font-size:13px; }
+.resumo-row span{
+  opacity:.75;
+  font-size:12px;
+}
+
+.resumo-row strong{
+  font-size:13px;
+}
 
 .resumo-row.total{
   border-bottom:none;
@@ -229,9 +252,10 @@ input{
 
 .resumo-row.total strong{
   color:var(--gold);
-  font-size:16px;
-  letter-spacing:1px;
+  font-size:15px;
 }
+
+/* BOTÕES DO RESUMO */
 
 .resumo-actions{
   display:flex;
@@ -241,11 +265,13 @@ input{
 
 .btn-secondary{
   flex:1;
-  padding:14px 18px;
+  padding:14px 16px;
   background:transparent;
   border:1px solid rgba(255,255,255,.18);
   color:#fff;
-  letter-spacing:2px;
+  letter-spacing:1px;
+  font-size:.75rem;
+  font-weight:600;
   cursor:pointer;
   transition:.2s ease;
 }
