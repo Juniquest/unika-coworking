@@ -258,3 +258,74 @@ document.addEventListener("DOMContentLoaded", () => {
     return old.apply(this, arguments);
   };
 })();
+// ================================
+//  MENSAGEM PREMIUM "BEM-VINDA DE VOLTA"
+// ================================
+
+function showWelcomeBack() {
+  try {
+    const last = localStorage.getItem("unika_last_reserva_v1");
+    if (!last) return;
+
+    const data = JSON.parse(last);
+    if (!data.nome) return;
+
+    // evita repetir sempre
+    if (sessionStorage.getItem("unika_welcome_shown")) return;
+    sessionStorage.setItem("unika_welcome_shown", "1");
+
+    const style = document.createElement("style");
+    style.textContent = `
+      #unika-welcome{
+        margin: 18px auto 0;
+        max-width: 500px;
+        border: 1px solid rgba(212,175,55,.35);
+        background: rgba(0,0,0,.45);
+        padding: 14px 18px;
+        text-align: center;
+        letter-spacing: 1px;
+        animation: welcomeFade .6s ease;
+      }
+
+      #unika-welcome strong{
+        color:#d4af37;
+        font-weight:600;
+      }
+
+      #unika-welcome span{
+        display:block;
+        margin-top:6px;
+        font-size:12px;
+        opacity:.85;
+      }
+
+      @keyframes welcomeFade{
+        from{opacity:0;transform:translateY(10px)}
+        to{opacity:1;transform:translateY(0)}
+      }
+    `;
+    document.head.appendChild(style);
+
+    const box = document.createElement("div");
+    box.id = "unika-welcome";
+
+    const firstName = data.nome.split(" ")[0];
+
+    box.innerHTML = `
+      <strong>Bem-vinda de volta à ŪNIKA, ${firstName} 👋</strong>
+      <span>Sua última reserva foi salva para facilitar seu acesso</span>
+    `;
+
+    // aparece logo abaixo do HERO (bem elegante)
+    const header = document.querySelector("header");
+    if (header && header.parentNode) {
+      header.parentNode.insertBefore(box, header.nextSibling);
+    } else {
+      document.body.prepend(box);
+    }
+
+  } catch(e){}
+}
+
+// chama ao carregar a página
+document.addEventListener("DOMContentLoaded", showWelcomeBack);
