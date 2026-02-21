@@ -11,52 +11,34 @@ color:#fff;
 font-family:Inter,sans-serif;
 }
 
-/* HERO */
+/* HERO PREMIUM CLARO */
 
 .hero{
-position:relative;
-min-height:520px;
-background-image: url("/assets/hero-unika.png"); center/cover no-repeat;
+min-height:88vh;
 display:flex;
-align-items:flex-end;
+align-items:center;
 justify-content:center;
-padding:70px 20px 60px;
-box-shadow:inset 0 -140px 120px rgba(0,0,0,.8);
-}
-
-.hero-overlay{
-position:absolute;
-inset:0;
-background:linear-gradient(to bottom,rgba(0,0,0,.35),rgba(0,0,0,.85));
-}
-
-.hero-content{
-position:relative;
 text-align:center;
-z-index:1;
+position:relative;
+overflow:hidden;
+
+background:
+radial-gradient(circle at 50% 40%, rgba(212,175,55,.18), rgba(0,0,0,.55)),
+linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.55)),
+url("/assets/hero-unika.png");
+
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+
+animation:heroFade .9s ease both;
 }
 
-.hero-content h1{
-color:var(--gold);
-letter-spacing:15px;
-font-weight:300;
-font-size:3rem;
-}
+.hero-content{position:relative;z-index:2}
 
-.hero-cta{
-border:1px solid var(--gold);
-padding:16px 40px;
-color:var(--gold);
-text-decoration:none;
-letter-spacing:5px;
-display:inline-block;
-margin-top:25px;
-transition:.25s;
-}
-
-.hero-cta:hover{
-background:var(--gold);
-color:#000;
+@keyframes heroFade{
+from{opacity:0;transform:translateY(12px)}
+to{opacity:1;transform:translateY(0)}
 }
 
 .container{
@@ -120,11 +102,7 @@ color:var(--gold);
 background:rgba(212,175,55,.08);
 }
 
-.time-price{
-font-size:12px;
-opacity:.85;
-margin-top:6px;
-}
+.time-price{font-size:12px;opacity:.85;margin-top:6px}
 
 .agenda-grid{
 display:grid;
