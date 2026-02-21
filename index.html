@@ -33,10 +33,27 @@
                 <div id="secao-agenda">
                     <h2>03. TEMPO ESTIMADO</h2>
                     <div class="grid">
-                        <div class="item" onclick="sel('duracao','120',this)">120 MIN</div>
-                        <div class="item" onclick="sel('duracao','180',this)">180 MIN</div>
-                        <div class="item" onclick="sel('duracao','240',this)">240 MIN</div>
-                        <div class="item" onclick="sel('duracao','diaria',this)">DIÁRIA</div>
+                        <div class="grid">
+    <div class="item" data-duracao="120" onclick="sel('duracao','120',this)">
+        <span class="time-label">120 MIN</span>
+        <span class="time-price">—</span>
+    </div>
+
+    <div class="item" data-duracao="180" onclick="sel('duracao','180',this)">
+        <span class="time-label">180 MIN</span>
+        <span class="time-price">—</span>
+    </div>
+
+    <div class="item" data-duracao="240" onclick="sel('duracao','240',this)">
+        <span class="time-label">240 MIN</span>
+        <span class="time-price">—</span>
+    </div>
+
+    <div class="item" data-duracao="diaria" onclick="sel('duracao','diaria',this)">
+        <span class="time-label">DIÁRIA</span>
+        <span class="time-price">—</span>
+    </div>
+</div>
                     </div>
                     <input type="hidden" id="duracao">
 
@@ -45,7 +62,11 @@
                     <div class="agenda-grid" id="agenda-slots"></div>
                     <input type="hidden" id="hora">
                 </div>
-                <button class="btn-pay" onclick="generatePix()">RESERVAR AGORA</button>
+                <div id="resumo-box" class="resumo hidden">
+   ... resumo que te mandei ...
+</div>
+
+<button class="btn-pay" onclick="mostrarResumo()">RESERVAR AGORA</button>
             </div>
         </section>
 
