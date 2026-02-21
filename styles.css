@@ -19,3 +19,10 @@ input { width: 100%; background: transparent; border: none; border-bottom: 2px s
 .tabs-nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
 .tab-btn { background: transparent; border: 1px solid #222; color: #666; padding: 12px 20px; cursor: pointer; font-size: 0.75rem; letter-spacing: 1px; }
 .tab-btn.active { color: var(--gold); border-color: var(--gold); }
+.item{...}
+.item:hover{...}
+.item.selected{...}
+.time-label{...}
+.time-price{...}
+.resumo{...}
+...
