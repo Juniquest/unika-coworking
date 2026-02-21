@@ -1,107 +1,155 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ŪNIKA | Coworking 24h</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header><h1>ŪNIKA</h1><p class="tagline">COWORKING AUTÔNOMO 24H</p></header>
 
-    <div class="tabs-nav">
-        <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR ESPAÇO</button>
-        <button class="tab-btn" onclick="switchTab('acessar')">ACESSAR MEU AGENDAMENTO</button>
-    </div>
+<header>
+    <h1>ŪNIKA</h1>
+    <p class="tagline">COWORKING AUTÔNOMO 24H</p>
+</header>
 
-    <main class="container">
-        <section id="tab-reservar">
-            <div class="form-box">
-                <h2>01. SERVIÇO</h2>
+<div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('reservar')">RESERVAR ESPAÇO</button>
+    <button class="tab-btn" onclick="switchTab('acessar')">ACESSAR MEU AGENDAMENTO</button>
+</div>
+
+<main class="container">
+
+    <!-- ========================= RESERVA ========================= -->
+    <section id="tab-reservar">
+        <div class="form-box">
+
+            <!-- 01 SERVIÇO -->
+            <h2>01. SERVIÇO</h2>
+            <div class="grid">
+                <div class="item" onclick="sel('servico','Estação Individual',this)">ESTAÇÃO INDIVIDUAL</div>
+                <div class="item" onclick="sel('servico','Sala de Reunião',this)">SALA DE REUNIÃO</div>
+                <div class="item" onclick="sel('servico','Banheiro Masc',this)">BANHEIRO MASCULINO</div>
+                <div class="item" onclick="sel('servico','Banheiro Fem',this)">BANHEIRO FEMININO</div>
+            </div>
+            <input type="hidden" id="servico">
+
+            <!-- 02 IDENTIFICAÇÃO -->
+            <h2>02. IDENTIFICAÇÃO</h2>
+            <input type="text" id="nome" placeholder="NOME COMPLETO">
+            <input type="text" id="doc" placeholder="CPF (Apenas números)">
+            <input type="email" id="email" placeholder="E-MAIL">
+
+            <!-- 03 TEMPO -->
+            <div id="secao-agenda">
+
+                <h2>03. TEMPO ESTIMADO</h2>
                 <div class="grid">
-                    <div class="item" onclick="sel('servico','Estação Individual',this)">ESTAÇÃO INDIVIDUAL</div>
-                    <div class="item" onclick="sel('servico','Sala de Reunião',this)">SALA DE REUNIÃO</div>
-                    <div class="item" onclick="sel('servico','Banheiro Masc',this)">BANHEIRO MASCULINO</div>
-                    <div class="item" onclick="sel('servico','Banheiro Fem',this)">BANHEIRO FEMININO</div>
-                </div>
-                <input type="hidden" id="servico">
-
-                <h2>02. IDENTIFICAÇÃO</h2>
-                <input type="text" id="nome" placeholder="NOME COMPLETO">
-                <input type="text" id="doc" placeholder="CPF (Apenas números)">
-                <input type="email" id="email" placeholder="E-MAIL">
-
-                <div id="secao-agenda">
-                    <h2>03. TEMPO ESTIMADO</h2>
-                    <div class="grid">
-                        <div class="grid">
-    <div class="item" data-duracao="120" onclick="sel('duracao','120',this)">
-        <span class="time-label">120 MIN</span>
-        <span class="time-price">—</span>
-    </div>
-
-    <div class="item" data-duracao="180" onclick="sel('duracao','180',this)">
-        <span class="time-label">180 MIN</span>
-        <span class="time-price">—</span>
-    </div>
-
-    <div class="item" data-duracao="240" onclick="sel('duracao','240',this)">
-        <span class="time-label">240 MIN</span>
-        <span class="time-price">—</span>
-    </div>
-
-    <div class="item" data-duracao="diaria" onclick="sel('duracao','diaria',this)">
-        <span class="time-label">DIÁRIA</span>
-        <span class="time-price">—</span>
-    </div>
-</div>
+                    <div class="item" data-duracao="120" onclick="sel('duracao','120',this)">
+                        <span class="time-label">120 MIN</span>
+                        <span class="time-price">—</span>
                     </div>
-                    <input type="hidden" id="duracao">
 
-                    <h2>04. INÍCIO</h2>
-                    <input type="date" id="data" onchange="loadAvailableTimes()">
-                    <div class="agenda-grid" id="agenda-slots"></div>
-                    <input type="hidden" id="hora">
+                    <div class="item" data-duracao="180" onclick="sel('duracao','180',this)">
+                        <span class="time-label">180 MIN</span>
+                        <span class="time-price">—</span>
+                    </div>
+
+                    <div class="item" data-duracao="240" onclick="sel('duracao','240',this)">
+                        <span class="time-label">240 MIN</span>
+                        <span class="time-price">—</span>
+                    </div>
+
+                    <div class="item" data-duracao="diaria" onclick="sel('duracao','diaria',this)">
+                        <span class="time-label">DIÁRIA</span>
+                        <span class="time-price">—</span>
+                    </div>
                 </div>
-                <div id="resumo-box" class="resumo hidden">
-   ... resumo que te mandei ...
-</div>
 
-<!-- RESUMO (aparece antes do PIX) -->
-<div id="resumo-box" class="resumo hidden">
-  <div class="resumo-row"><span>SERVIÇO</span><strong id="r-servico">—</strong></div>
-  <div class="resumo-row"><span>DURAÇÃO</span><strong id="r-duracao">—</strong></div>
-  <div class="resumo-row"><span>INÍCIO</span><strong id="r-inicio">—</strong></div>
-  <div class="resumo-row total"><span>TOTAL</span><strong id="r-total">R$ 0,00</strong></div>
+                <input type="hidden" id="duracao">
 
-  <div class="resumo-actions">
-    <button class="btn-secondary" type="button" onclick="editarResumo()">EDITAR</button>
-    <button class="btn-pay" type="button" onclick="confirmarEGerarPix()">CONFIRMAR E GERAR PIX</button>
-  </div>
-</div>
+                <!-- 04 INÍCIO -->
+                <h2>04. INÍCIO</h2>
+                <input type="date" id="data" onchange="loadAvailableTimes()">
 
-<button class="btn-pay" type="button" onclick="mostrarResumo()">RESERVAR AGORA</button>
+                <div class="agenda-grid" id="agenda-slots"></div>
+
+                <input type="hidden" id="hora">
+
             </div>
-        </section>
 
-        <section id="tab-acessar" class="hidden">
-            <div class="form-box" style="text-align: center;">
-                <p style="color: #d4af37; letter-spacing: 2px; margin-bottom: 20px;">DIGITE SEU CPF PARA ACESSAR</p>
-                <form action="/painel" method="GET">
-                    <input type="text" name="cpf" placeholder="CPF CADASTRADO" required style="text-align: center;">
-                    <button type="submit" class="btn-pay" style="margin-top: 30px;">ENTRAR AGORA</button>
-                </form>
+            <!-- ========================= RESUMO ========================= -->
+            <div id="resumo-box" class="resumo hidden">
+
+                <div class="resumo-row">
+                    <span>SERVIÇO</span>
+                    <strong id="r-servico">—</strong>
+                </div>
+
+                <div class="resumo-row">
+                    <span>DURAÇÃO</span>
+                    <strong id="r-duracao">—</strong>
+                </div>
+
+                <div class="resumo-row">
+                    <span>INÍCIO</span>
+                    <strong id="r-inicio">—</strong>
+                </div>
+
+                <div class="resumo-row total">
+                    <span>TOTAL</span>
+                    <strong id="r-total">R$ 0,00</strong>
+                </div>
+
+                <div class="resumo-actions">
+                    <button class="btn-secondary" type="button" onclick="editarResumo()">EDITAR</button>
+                    <button class="btn-pay" type="button" onclick="confirmarEGerarPix()">CONFIRMAR E GERAR PIX</button>
+                </div>
+
             </div>
-        </section>
-    </main>
 
-    <script src="script.js"></script>
-    <script>
-        function switchTab(t) {
-            document.getElementById('tab-reservar').classList.toggle('hidden', t!=='reservar');
-            document.getElementById('tab-acessar').classList.toggle('hidden', t!=='acessar');
-            document.querySelectorAll('.tab-btn')[0].classList.toggle('active', t==='reservar');
-            document.querySelectorAll('.tab-btn')[1].classList.toggle('active', t==='acessar');
-        }
-    </script>
+            <!-- BOTÃO PRINCIPAL -->
+            <button class="btn-pay" type="button" onclick="mostrarResumo()">
+                RESERVAR AGORA
+            </button>
+
+        </div>
+    </section>
+
+    <!-- ========================= ACESSO ========================= -->
+    <section id="tab-acessar" class="hidden">
+        <div class="form-box" style="text-align: center;">
+            <p style="color: #d4af37; letter-spacing: 2px; margin-bottom: 20px;">
+                DIGITE SEU CPF PARA ACESSAR
+            </p>
+            <form action="/painel" method="GET">
+                <input type="text" name="cpf" placeholder="CPF CADASTRADO" required style="text-align: center;">
+                <button type="submit" class="btn-pay" style="margin-top: 30px;">
+                    ENTRAR AGORA
+                </button>
+            </form>
+        </div>
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+
+<script>
+function switchTab(t) {
+    document.getElementById('tab-reservar')
+        .classList.toggle('hidden', t !== 'reservar');
+
+    document.getElementById('tab-acessar')
+        .classList.toggle('hidden', t !== 'acessar');
+
+    document.querySelectorAll('.tab-btn')[0]
+        .classList.toggle('active', t === 'reservar');
+
+    document.querySelectorAll('.tab-btn')[1]
+        .classList.toggle('active', t === 'acessar');
+}
+</script>
+
 </body>
 </html>
