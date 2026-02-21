@@ -57,3 +57,8 @@ async function generatePix() {
     const data = await res.json();
     if(data.invoiceUrl) location.href = data.invoiceUrl;
 }
+✅ PRICE_TABLE
+✅ funções fmtBRL, calcTotal
+✅ updateDurationPrices
+✅ nova função sel()
+✅ mostrarResumo(), editarResumo(), confirmarEGerarPix()
