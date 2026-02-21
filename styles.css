@@ -16,7 +16,7 @@ font-family:Inter,sans-serif;
 .hero{
 position:relative;
 min-height:520px;
-background:url("assets/hero-unika.png") center/cover no-repeat;
+background-image: url("/assets/hero-unika.png"); center/cover no-repeat;
 display:flex;
 align-items:flex-end;
 justify-content:center;
