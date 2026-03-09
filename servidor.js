@@ -16,10 +16,12 @@ let estadoBanheiros = {
     masculino: "livre",
     feminino: "livre"
 };
+
 let comandoPorta = {
     masculino: false,
     feminino: false
 };
+
 const Reserva = mongoose.model('Reserva', {
     nome: String,
     email: String,
@@ -57,25 +59,98 @@ app.get('/painel', async (req, res) => {
     }
 
     let statusBanheiro = "livre";
+    let tipo = "masculino";
 
-    if (reserva.servico === "Banheiro Masc") statusBanheiro = estadoBanheiros.masculino;
-    if (reserva.servico === "Banheiro Fem") statusBanheiro = estadoBanheiros.feminino;
+    if (reserva.servico === "Banheiro Masc") {
+        statusBanheiro = estadoBanheiros.masculino;
+        tipo = "masculino";
+    }
+
+    if (reserva.servico === "Banheiro Fem") {
+        statusBanheiro = estadoBanheiros.feminino;
+        tipo = "feminino";
+    }
 
     res.send(`<!DOCTYPE html>
 <html>
+
+<head>
+
+<title>ŪNIKA</title>
+
+<style>
+
+body{
+background:#000;
+color:#d4af37;
+font-family:sans-serif;
+text-align:center;
+padding-top:100px;
+}
+
+button{
+margin-top:30px;
+padding:15px 40px;
+font-size:20px;
+background:#d4af37;
+border:none;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
 <body>
+
 <h1>ŪNIKA</h1>
+
 <div>BANHEIRO: ${statusBanheiro.toUpperCase()}</div>
+
+<button onclick="abrir()">ABRIR PORTA</button>
+
+<script>
+
+function abrir(){
+
+fetch('/api/abrir-porta-painel',{
+method:'POST',
+headers:{
+'Content-Type':'application/json'
+},
+body:JSON.stringify({
+tipo:'${tipo}'
+})
+})
+.then(r=>r.json())
+.then(d=>{
+
+if(d.erro){
+
+alert(d.erro)
+
+}else{
+
+alert("Porta liberada")
+
+}
+
+})
+
+}
+
+</script>
+
 </body>
+
 </html>`);
 
 });
 
 app.post('/api/checkout', async (req, res) => {
-    
+
     const servico = req.body.servico;
 
-    // BLOQUEIO DE BANHEIRO OCUPADO
     if (servico === "Banheiro Masc" && estadoBanheiros.masculino === "ocupado") {
         return res.json({
             erro: "Banheiro masculino ocupado no momento."
@@ -87,36 +162,6 @@ app.post('/api/checkout', async (req, res) => {
             erro: "Banheiro feminino ocupado no momento."
         });
     }
-
-    const links = {
-        "Banheiro Masc": "https://www.asaas.com/c/xx8y9j7aelqt1u1z",
-        "Banheiro Fem": "https://www.asaas.com/c/hy4cb2sz0ya4mmrd",
-        "120": "https://www.asaas.com/c/astpmmsj1m8b7wct",
-        "180": "https://www.asaas.com/c/vvznh9nehwe4emft",
-        "240": "https://www.asaas.com/c/1nedgjc1pqqkeu18",
-        "diaria": "https://www.asaas.com/c/9yyhtmtds2u0je33"
-    };
-
-    const linkFinal =
-        (links[req.body.servico] || links[req.body.duracao] || links["120"])
-        + "?externalReference=" + req.body.doc;
-
-    try {
-
-        const reserva = await new Reserva(req.body).save();
-
-        res.json({
-            invoiceUrl: linkFinal,
-            reservaId: reserva._id
-        });
-
-    } catch (e) {
-
-        res.status(500).json({ error: "Erro" });
-
-    }
-
-});
 
     const links = {
         "Banheiro Masc": "https://www.asaas.com/c/xx8y9j7aelqt1u1z",
@@ -209,39 +254,26 @@ app.post('/api/banheiro-status', (req, res) => {
 
 });
 
-app.post('/api/abrir-porta', (req, res) => {
+app.post('/api/abrir-porta-painel', (req, res) => {
 
     const { tipo } = req.body;
 
     if (estadoBanheiros[tipo] === "ocupado") {
 
         return res.json({
-            erro: "Banheiro ocupado. Aguarde liberar."
+            erro: "Banheiro ocupado"
         });
 
     }
 
-    estadoBanheiros[tipo] = "ocupado";
+    comandoPorta[tipo] = true;
 
     res.json({
-        ok: true
+        ok:true
     });
 
 });
 
-app.post('/api/liberar-banheiro', (req, res) => {
-
-    const { tipo } = req.body;
-
-    if (tipo === "masculino" || tipo === "feminino") {
-
-        estadoBanheiros[tipo] = "livre";
-
-    }
-
-    res.sendStatus(200);
-
-});
 app.get('/api/comando-porta', (req, res) => {
 
     const tipo = req.query.tipo;
@@ -257,6 +289,20 @@ app.get('/api/comando-porta', (req, res) => {
     }
 
     res.json({ abrir:false });
+
+});
+
+app.post('/api/liberar-banheiro', (req, res) => {
+
+    const { tipo } = req.body;
+
+    if (tipo === "masculino" || tipo === "feminino") {
+
+        estadoBanheiros[tipo] = "livre";
+
+    }
+
+    res.sendStatus(200);
 
 });
 
