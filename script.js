@@ -22,7 +22,12 @@ function sel(id,val,el){
 document.querySelectorAll("."+id+"-selected").forEach(e=>e.classList.remove("selected"));
 el.classList.add("selected",id+"-selected");
 document.getElementById(id).value=val;
-if(id==="servico")updateDurationPrices();
+
+if(id==="servico"){
+updateDurationPrices();
+ajustarFluxoBanheiro();
+}
+
 }
 
 async function loadAvailableTimes(){
@@ -146,3 +151,27 @@ el.style.pointerEvents="auto";
 setInterval(atualizarStatusBanheiros,5000);
 
 document.addEventListener("DOMContentLoaded",atualizarStatusBanheiros);
+
+function ajustarFluxoBanheiro(){
+
+const servico = document.getElementById("servico").value;
+
+const tempo = document.querySelector("#tempo-estimado")?.parentElement;
+const agenda = document.querySelector("#agenda-slots")?.parentElement;
+const inicio = document.querySelector("#data")?.parentElement;
+
+if(servico === "Banheiro Masc" || servico === "Banheiro Fem"){
+
+if(tempo) tempo.style.display="none";
+if(agenda) agenda.style.display="none";
+if(inicio) inicio.style.display="none";
+
+}else{
+
+if(tempo) tempo.style.display="block";
+if(agenda) agenda.style.display="block";
+if(inicio) inicio.style.display="block";
+
+}
+
+}
