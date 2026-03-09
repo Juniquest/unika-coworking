@@ -16,7 +16,10 @@ let estadoBanheiros = {
     masculino: "livre",
     feminino: "livre"
 };
-
+let comandoPorta = {
+    masculino: false,
+    feminino: false
+};
 const Reserva = mongoose.model('Reserva', {
     nome: String,
     email: String,
@@ -237,6 +240,23 @@ app.post('/api/liberar-banheiro', (req, res) => {
     }
 
     res.sendStatus(200);
+
+});
+app.get('/api/comando-porta', (req, res) => {
+
+    const tipo = req.query.tipo;
+
+    if (tipo === "masculino" || tipo === "feminino") {
+
+        const abrir = comandoPorta[tipo];
+
+        comandoPorta[tipo] = false;
+
+        return res.json({ abrir });
+
+    }
+
+    res.json({ abrir:false });
 
 });
 
