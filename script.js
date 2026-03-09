@@ -338,3 +338,58 @@ header.parentNode.insertBefore(box, header.nextSibling);
 }
 
 document.addEventListener("DOMContentLoaded", showWelcomeBack);
+
+// ================================
+// STATUS BANHEIROS AUTOMÁTICO
+// ================================
+
+async function atualizarStatusBanheiros(){
+
+try{
+
+const r = await fetch("/api/status-banheiros");
+const s = await r.json();
+
+document.querySelectorAll(".item").forEach(el=>{
+
+if(el.textContent.includes("BANHEIRO MASCULINO")){
+
+if(s.masculino==="ocupado"){
+
+el.innerHTML="BANHEIRO MASCULINO<br><small style='color:red'>OCUPADO</small>";
+el.style.opacity="0.5";
+
+}else{
+
+el.innerHTML="BANHEIRO MASCULINO<br><small style='color:#00ff88'>LIVRE</small>";
+el.style.opacity="1";
+
+}
+
+}
+
+if(el.textContent.includes("BANHEIRO FEMININO")){
+
+if(s.feminino==="ocupado"){
+
+el.innerHTML="BANHEIRO FEMININO<br><small style='color:red'>OCUPADO</small>";
+el.style.opacity="0.5";
+
+}else{
+
+el.innerHTML="BANHEIRO FEMININO<br><small style='color:#00ff88'>LIVRE</small>";
+el.style.opacity="1";
+
+}
+
+}
+
+});
+
+}catch(e){}
+
+}
+
+setInterval(atualizarStatusBanheiros,5000);
+
+document.addEventListener("DOMContentLoaded",atualizarStatusBanheiros);
