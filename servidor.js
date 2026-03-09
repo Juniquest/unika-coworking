@@ -70,6 +70,51 @@ app.get('/painel', async (req, res) => {
 
 app.post('/api/checkout', async (req, res) => {
 
+    const servico = req.body.servico;
+
+    // BLOQUEIO DE BANHEIRO OCUPADO
+    if (servico === "Banheiro Masc" && estadoBanheiros.masculino === "ocupado") {
+        return res.json({
+            erro: "Banheiro masculino ocupado no momento."
+        });
+    }
+
+    if (servico === "Banheiro Fem" && estadoBanheiros.feminino === "ocupado") {
+        return res.json({
+            erro: "Banheiro feminino ocupado no momento."
+        });
+    }
+
+    const links = {
+        "Banheiro Masc": "https://www.asaas.com/c/xx8y9j7aelqt1u1z",
+        "Banheiro Fem": "https://www.asaas.com/c/hy4cb2sz0ya4mmrd",
+        "120": "https://www.asaas.com/c/astpmmsj1m8b7wct",
+        "180": "https://www.asaas.com/c/vvznh9nehwe4emft",
+        "240": "https://www.asaas.com/c/1nedgjc1pqqkeu18",
+        "diaria": "https://www.asaas.com/c/9yyhtmtds2u0je33"
+    };
+
+    const linkFinal =
+        (links[req.body.servico] || links[req.body.duracao] || links["120"])
+        + "?externalReference=" + req.body.doc;
+
+    try {
+
+        const reserva = await new Reserva(req.body).save();
+
+        res.json({
+            invoiceUrl: linkFinal,
+            reservaId: reserva._id
+        });
+
+    } catch (e) {
+
+        res.status(500).json({ error: "Erro" });
+
+    }
+
+});
+
     const links = {
         "Banheiro Masc": "https://www.asaas.com/c/xx8y9j7aelqt1u1z",
         "Banheiro Fem": "https://www.asaas.com/c/hy4cb2sz0ya4mmrd",
