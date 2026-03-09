@@ -1,8 +1,8 @@
 const PRICE_TABLE={
-"Estação Individual":{"120":39.9,"180":49.9,"240":59.9,"diaria":89.9},
+"Estação Individual":{"120":99.9,"180":49.9,"240":59.9,"diaria":89.9},
 "Sala de Reunião":{"120":79.9,"180":99.9,"240":119.9,"diaria":199.9},
-"Banheiro Masc":{"60":10},
-"Banheiro Fem":{"60":10}
+"Banheiro Masc":{"60":1,"120":1,"180":1,"240":1,"diaria":1},
+"Banheiro Fem":{"60":1,"120":1,"180":1,"240":1,"diaria":1}
 };
 
 const fmt=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
