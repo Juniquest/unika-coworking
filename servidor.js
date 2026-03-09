@@ -31,10 +31,10 @@ const Reserva = mongoose.model('Reserva', {
 
 app.get('/api/status-banheiros', (req, res) => {
 
-res.json({
-masculino: estadoBanheiros.masculino,
-feminino: estadoBanheiros.feminino
-});
+    res.json({
+        masculino: estadoBanheiros.masculino,
+        feminino: estadoBanheiros.feminino
+    });
 
 });
 
@@ -59,21 +59,12 @@ app.get('/painel', async (req, res) => {
     if (reserva.servico === "Banheiro Fem") statusBanheiro = estadoBanheiros.feminino;
 
     res.send(`<!DOCTYPE html>
-<html><body>
+<html>
+<body>
 <h1>ŪNIKA</h1>
 <div>BANHEIRO: ${statusBanheiro.toUpperCase()}</div>
-</body></html>`);
-
-});
-
-app.get('/api/horarios-ocupados', async (req, res) => {
-
-    const ocupados = await Reserva.find({
-        data: req.query.data,
-        status: 'pago'
-    }).select('hora -_id');
-
-    res.json(ocupados.map(r => r.hora));
+</body>
+</html>`);
 
 });
 
@@ -118,10 +109,17 @@ app.post('/webhook-asaas', async (req, res) => {
         if (evento.event === "PAYMENT_RECEIVED") {
 
             const doc = evento.payment.externalReference;
+            const paymentId = evento.payment.id;
 
             await Reserva.updateOne(
-                { doc: doc, status: "pendente" },
-                { status: "pago" }
+                {
+                    doc: doc,
+                    status: "pendente"
+                },
+                {
+                    status: "pago",
+                    pagamentoId: paymentId
+                }
             );
 
         }
@@ -162,9 +160,25 @@ app.post('/api/abrir-porta', (req, res) => {
 
     }
 
+    estadoBanheiros[tipo] = "ocupado";
+
     res.json({
         ok: true
     });
+
+});
+
+app.post('/api/liberar-banheiro', (req, res) => {
+
+    const { tipo } = req.body;
+
+    if (tipo === "masculino" || tipo === "feminino") {
+
+        estadoBanheiros[tipo] = "livre";
+
+    }
+
+    res.sendStatus(200);
 
 });
 
