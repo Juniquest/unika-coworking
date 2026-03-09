@@ -61,8 +61,24 @@ b.classList.remove("show");
 setTimeout(()=>b.classList.add("hidden"),280);
 }
 
-function confirmarEGerarPix(){
-alert("PIX gerado (simulação)");
+async function confirmarEGerarPix(){
+
+const valor = PRICE_TABLE[get("servico")][get("duracao")];
+
+const res = await fetch("/gerar-pix",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({valor})
+});
+
+const data = await res.json();
+
+document.getElementById("pix-qrcode").src=data.qr;
+
+document.getElementById("pix-modal").classList.remove("hidden");
+
 }
 // ================================
 //  HISTÓRICO: "Reservar novamente"
