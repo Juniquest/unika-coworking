@@ -46,9 +46,34 @@ cont.appendChild(d);
 }
 
 function mostrarResumo(){
+
+const servico = get("servico");
+
+if(servico === "Banheiro Masc" || servico === "Banheiro Fem"){
+
+if(!get("nome") || !get("doc") || !get("email")){
+return alert("Preencha tudo!");
+}
+
+}else{
+
 ["servico","duracao","data","hora"].forEach(f=>{
 if(!get(f))return alert("Preencha tudo!");
 });
+
+}
+
+document.getElementById("r-servico").textContent=get("servico");
+document.getElementById("r-duracao").textContent=get("duracao");
+document.getElementById("r-inicio").textContent=get("data")+" • "+get("hora");
+document.getElementById("r-total").textContent=
+fmt(PRICE_TABLE[get("servico")][get("duracao")]);
+
+const box=document.getElementById("resumo-box");
+box.classList.remove("hidden");
+requestAnimationFrame(()=>box.classList.add("show"));
+
+}
 document.getElementById("r-servico").textContent=get("servico");
 document.getElementById("r-duracao").textContent=get("duracao");
 document.getElementById("r-inicio").textContent=get("data")+" • "+get("hora");
