@@ -72,7 +72,7 @@ app.get('/painel', async (req, res) => {
 });
 
 app.post('/api/checkout', async (req, res) => {
-
+    
     const servico = req.body.servico;
 
     // BLOQUEIO DE BANHEIRO OCUPADO
