@@ -111,7 +111,7 @@ app.post('/webhook-asaas', async (req, res) => {
             const doc = evento.payment.externalReference;
             const paymentId = evento.payment.id;
 
-            await Reserva.updateOne(
+            const reserva = await Reserva.findOneAndUpdate(
                 {
                     doc: doc,
                     status: "pendente"
@@ -119,8 +119,21 @@ app.post('/webhook-asaas', async (req, res) => {
                 {
                     status: "pago",
                     pagamentoId: paymentId
-                }
+                },
+                { new: true }
             );
+
+            if (reserva) {
+
+                if (reserva.servico === "Banheiro Masc") {
+                    estadoBanheiros.masculino = "ocupado";
+                }
+
+                if (reserva.servico === "Banheiro Fem") {
+                    estadoBanheiros.feminino = "ocupado";
+                }
+
+            }
 
         }
 
