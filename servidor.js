@@ -168,31 +168,36 @@ app.post("/webhook-asaas", async (req,res)=>{
 
 const evento = req.body;
 
-console.log("WEBHOOK RECEBIDO:",evento);
+console.log("WEBHOOK RECEBIDO:", evento);
 
 if(evento.event==="PAYMENT_RECEIVED"){
 
-const cpf = evento?.payment?.externalReference;
+const paymentLink = evento?.payment?.paymentLink;
 
-if(!cpf) return res.sendStatus(200);
+let tipo = null;
 
-const reserva = await Reserva.findOne({cpf}).sort({data:-1});
+if(paymentLink==="xx8y9j7aelqt1u1z"){
+  tipo = "masculino";
+}
 
-if(!reserva) return res.sendStatus(200);
+if(paymentLink==="hy4cb2sz0ya4mmrd"){
+  tipo = "feminino";
+}
 
-const tipo = reserva.banheiro;
+if(!tipo){
+  console.log("paymentLink não identificado:", paymentLink);
+  return res.sendStatus(200);
+}
 
 if(estadoBanheiros[tipo]==="ocupado"){
-return res.sendStatus(200);
+  return res.sendStatus(200);
 }
 
 estadoBanheiros[tipo]="ocupado";
-
 bloqueioBanheiro[tipo]=true;
-
 comandoPorta[tipo]=true;
 
-console.log("PORTA LIBERADA:",tipo);
+console.log("PORTA LIBERADA:", tipo);
 
 }
 
