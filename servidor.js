@@ -17,10 +17,11 @@ let estadoBanheiros = {
     feminino: "livre"
 };
 
-let comandoPorta = {
+let bloqueioBanheiro = {
     masculino: false,
     feminino: false
 };
+
 let comandoPorta = {
     masculino: false,
     feminino: false
@@ -222,14 +223,31 @@ app.post('/webhook-asaas', async (req, res) => {
 
             if (reserva) {
 
-                if (reserva.servico === "Banheiro Masc") {
-                    estadoBanheiros.masculino = "ocupado";
-                }
+              if (reserva.servico === "Banheiro Masc") {
 
-                if (reserva.servico === "Banheiro Fem") {
-                    estadoBanheiros.feminino = "ocupado";
-                }
+    if(estadoBanheiros.masculino === "livre" && bloqueioBanheiro.masculino === false){
 
+        bloqueioBanheiro.masculino = true;
+
+        comandoPorta.masculino = true;
+        estadoBanheiros.masculino = "ocupado";
+
+    }
+
+}
+
+if (reserva.servico === "Banheiro Fem") {
+
+    if(estadoBanheiros.feminino === "livre" && bloqueioBanheiro.feminino === false){
+
+        bloqueioBanheiro.feminino = true;
+
+        comandoPorta.feminino = true;
+        estadoBanheiros.feminino = "ocupado";
+
+    }
+
+}
             }
 
         }
@@ -303,6 +321,7 @@ app.post('/api/liberar-banheiro', (req, res) => {
     if (tipo === "masculino" || tipo === "feminino") {
 
         estadoBanheiros[tipo] = "livre";
+        bloqueioBanheiro[tipo] = false;
 
     }
 
