@@ -141,6 +141,13 @@ app.post("/api/checkout", async (req, res) => {
 
   const { cpf, banheiro } = req.body;
 
+  const links = {
+    masculino: "https://www.asaas.com/c/xx8y9j7aelqt1u1z",
+    feminino: "https://www.asaas.com/c/hy4cb2sz0ya4mmrd"
+  };
+
+  const link = links[banheiro] + "?externalReference=" + cpf;
+
   const reserva = new Reserva({
     cpf,
     banheiro,
@@ -149,7 +156,9 @@ app.post("/api/checkout", async (req, res) => {
 
   await reserva.save();
 
-  res.json({ ok: true });
+  res.json({
+    url: link
+  });
 
 });
 
