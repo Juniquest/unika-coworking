@@ -132,25 +132,29 @@ setTimeout(()=>b.classList.add("hidden"),280);
 
 async function confirmarEGerarPix(){
 
-const payload={
-nome:get("nome"),
-doc:get("doc"),
-email:get("email"),
-servico:get("servico"),
-duracao:get("duracao")||"60",
-data:get("data")||"",
-hora:get("hora")||""
-};
+  const servico = get("servico");
 
-const res=await fetch("/api/checkout",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify(payload)
-});
+  const banheiro =
+    servico === "Banheiro Masc" ? "masculino" :
+    servico === "Banheiro Fem" ? "feminino" :
+    "";
 
-const data=await res.json();
+  const payload = {
+    cpf: get("doc"),
+    banheiro: banheiro
+  };
 
-window.location.href=data.invoiceUrl;
+  const res = await fetch("/api/checkout",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  window.location.href = data.url;
+
+}
 
 }
 
