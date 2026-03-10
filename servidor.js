@@ -21,6 +21,10 @@ let comandoPorta = {
     masculino: false,
     feminino: false
 };
+let comandoPorta = {
+    masculino: false,
+    feminino: false
+};
 
 const Reserva = mongoose.model('Reserva', {
     nome: String,
