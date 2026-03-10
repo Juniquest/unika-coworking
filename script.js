@@ -45,7 +45,7 @@ if(inicio)inicio.style.display="block";
 
 function sel(id,val,el){
 
-document.querySelectorAll("."+id+"-selected").forEach(e=>e.classList.remove("selected"));
+document.querySelectorAll("."+id+"-selected").forEach(e=>e.classList.remove("selected",id+"-selected"));
 el.classList.add("selected",id+"-selected");
 document.getElementById(id).value=val;
 
@@ -89,15 +89,15 @@ const servico=get("servico");
 
 if(servico==="Banheiro Masc"||servico==="Banheiro Fem"){
 
-if(!get("nome")||!get("doc")||!get("email")){
+if(!get("nome")||!get("doc")||!get("email")||!get("servico")){
 return alert("Preencha tudo!");
 }
 
 }else{
 
-["servico","duracao","data","hora"].forEach(f=>{
-if(!get(f))return alert("Preencha tudo!");
-});
+if(!get("nome")||!get("doc")||!get("email")||!get("servico")||!get("duracao")||!get("data")||!get("hora")){
+return alert("Preencha tudo!");
+}
 
 }
 
@@ -132,29 +132,32 @@ setTimeout(()=>b.classList.add("hidden"),280);
 
 async function confirmarEGerarPix(){
 
-  const servico = get("servico");
+const servico = get("servico");
 
-  const banheiro =
-    servico === "Banheiro Masc" ? "masculino" :
-    servico === "Banheiro Fem" ? "feminino" :
-    "";
+const banheiro =
+servico==="Banheiro Masc" ? "masculino" :
+servico==="Banheiro Fem" ? "feminino" :
+"";
 
-  const payload = {
-    cpf: get("doc"),
-    banheiro: banheiro
-  };
+const payload = {
+cpf:get("doc"),
+banheiro:banheiro
+};
 
-  const res = await fetch("/api/checkout",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(payload)
-  });
+const res = await fetch("/api/checkout",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
 
-  const data = await res.json();
+const data = await res.json();
 
-  window.location.href = data.url;
-
+if(data.erro){
+alert(data.erro);
+return;
 }
+
+window.location.href=data.url;
 
 }
 
@@ -218,4 +221,7 @@ el.style.pointerEvents="auto";
 
 setInterval(atualizarStatusBanheiros,5000);
 
-document.addEventListener("DOMContentLoaded",atualizarStatusBanheiros);
+document.addEventListener("DOMContentLoaded",()=>{
+atualizarStatusBanheiros();
+updateDurationPrices();
+});
