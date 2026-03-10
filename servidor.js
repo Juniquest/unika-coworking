@@ -1,87 +1,85 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
+const express = require("express");
+const path = require("path");
+const mongoose = require("mongoose");
 
 const app = express();
 
 app.use(express.static(__dirname));
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use("/assets", express.static(path.join(__dirname, "assets")));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 mongoose.connect(process.env.MONGO_URI);
 
+
+// ESTADO DOS BANHEIROS
 let estadoBanheiros = {
-    masculino: "livre",
-    feminino: "livre"
+  masculino: "livre",
+  feminino: "livre"
 };
 
+
+// BLOQUEIO PARA ABRIR
 let bloqueioBanheiro = {
-    masculino: false,
-    feminino: false
+  masculino: false,
+  feminino: false
 };
 
+
+// COMANDO PARA ESP32
 let comandoPorta = {
-    masculino: false,
-    feminino: false
+  masculino: false,
+  feminino: false
 };
 
-const Reserva = mongoose.model('Reserva', {
-    nome: String,
-    email: String,
-    doc: String,
-    servico: String,
-    data: String,
-    hora: String,
-    duracao: String,
-    pagamentoId: String,
-    status: { type: String, default: 'pendente' }
+
+
+// MODELO RESERVA
+const Reserva = mongoose.model("Reserva", {
+  cpf: String,
+  banheiro: String,
+  data: Date
 });
 
-app.get('/api/status-banheiros', (req, res) => {
 
-    res.json({
-        masculino: estadoBanheiros.masculino,
-        feminino: estadoBanheiros.feminino
-    });
 
+// STATUS BANHEIROS
+app.get("/api/status-banheiros", (req, res) => {
+  res.json(estadoBanheiros);
 });
 
-app.get('/painel', async (req, res) => {
 
-    const { cpf } = req.query;
-    const cpfLimpo = cpf.replace(/\D/g, '');
 
-    const reserva = await Reserva.findOne({
-        doc: cpfLimpo,
-        status: 'pago'
-    }).sort({ _id: -1 });
 
-    if (!reserva) {
-        return res.send(`<body style="background:#000;color:#d4af37;text-align:center;padding-top:100px;font-family:sans-serif;">
-        <h1>ACESSO NEGADO</h1></body>`);
-    }
+// PAINEL
+app.get("/painel", async (req, res) => {
 
-    let statusBanheiro = "livre";
-    let tipo = "masculino";
+  const cpf = req.query.cpf;
 
-    if (reserva.servico === "Banheiro Masc") {
-        statusBanheiro = estadoBanheiros.masculino;
-        tipo = "masculino";
-    }
+  if (!cpf) {
+    return res.send("CPF não informado");
+  }
 
-    if (reserva.servico === "Banheiro Fem") {
-        statusBanheiro = estadoBanheiros.feminino;
-        tipo = "feminino";
-    }
+  const reserva = await Reserva.findOne({ cpf });
 
-    res.send(`<!DOCTYPE html>
+  if (!reserva) {
+
+    return res.send(`
+    <body style="background:#000;color:#d4af37;text-align:center;padding-top:100px;font-family:sans-serif;">
+    <h1>ACESSO NEGADO</h1>
+    </body>
+    `);
+
+  }
+
+  res.send(`
+<!DOCTYPE html>
 <html>
 
 <head>
-
-<title>ŪNIKA</title>
+<meta charset="UTF-8">
+<title>UNIKA</title>
 
 <style>
 
@@ -94,11 +92,10 @@ padding-top:100px;
 }
 
 button{
-margin-top:30px;
-padding:15px 40px;
-font-size:20px;
 background:#d4af37;
 border:none;
+padding:20px;
+font-size:20px;
 cursor:pointer;
 }
 
@@ -108,9 +105,9 @@ cursor:pointer;
 
 <body>
 
-<h1>ŪNIKA</h1>
+<h1>UNIKA</h1>
 
-<div>BANHEIRO: ${statusBanheiro.toUpperCase()}</div>
+<h2>BANHEIRO: ${estadoBanheiros[reserva.banheiro]}</h2>
 
 <button onclick="abrir()">ABRIR PORTA</button>
 
@@ -118,28 +115,12 @@ cursor:pointer;
 
 function abrir(){
 
-fetch('/api/abrir-porta-painel',{
-method:'POST',
-headers:{
-'Content-Type':'application/json'
-},
+fetch("/api/abrir-porta-painel",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-tipo:'${tipo}'
+tipo:"${reserva.banheiro}"
 })
-})
-.then(r=>r.json())
-.then(d=>{
-
-if(d.erro){
-
-alert(d.erro)
-
-}else{
-
-alert("Porta liberada")
-
-}
-
 })
 
 }
@@ -147,186 +128,125 @@ alert("Porta liberada")
 </script>
 
 </body>
-
-</html>`);
-
-});
-
-app.post('/api/checkout', async (req, res) => {
-
-    const servico = req.body.servico;
-
-    if (servico === "Banheiro Masc" && estadoBanheiros.masculino === "ocupado") {
-        return res.json({
-            erro: "Banheiro masculino ocupado no momento."
-        });
-    }
-
-    if (servico === "Banheiro Fem" && estadoBanheiros.feminino === "ocupado") {
-        return res.json({
-            erro: "Banheiro feminino ocupado no momento."
-        });
-    }
-
-    const links = {
-        "Banheiro Masc": "https://www.asaas.com/c/xx8y9j7aelqt1u1z",
-        "Banheiro Fem": "https://www.asaas.com/c/hy4cb2sz0ya4mmrd",
-        "120": "https://www.asaas.com/c/astpmmsj1m8b7wct",
-        "180": "https://www.asaas.com/c/vvznh9nehwe4emft",
-        "240": "https://www.asaas.com/c/1nedgjc1pqqkeu18",
-        "diaria": "https://www.asaas.com/c/9yyhtmtds2u0je33"
-    };
-
-    const linkFinal =
-        (links[req.body.servico] || links[req.body.duracao] || links["120"])
-        + "?externalReference=" + req.body.doc;
-
-    try {
-
-        const reserva = await new Reserva(req.body).save();
-
-        res.json({
-            invoiceUrl: linkFinal,
-            reservaId: reserva._id
-        });
-
-    } catch (e) {
-
-        res.status(500).json({ error: "Erro" });
-
-    }
+</html>
+`);
 
 });
 
-app.post('/webhook-asaas', async (req, res) => {
 
-    try {
 
-        const evento = req.body;
 
-        if (evento.event === "PAYMENT_RECEIVED") {
+// CHECKOUT
+app.post("/api/checkout", async (req, res) => {
 
-            const doc = evento.payment.externalReference;
-            const paymentId = evento.payment.id;
+  const { cpf, banheiro } = req.body;
 
-            const reserva = await Reserva.findOneAndUpdate(
-                {
-                    doc: doc,
-                    status: "pendente"
-                },
-                {
-                    status: "pago",
-                    pagamentoId: paymentId
-                },
-                { new: true }
-            );
+  const reserva = new Reserva({
+    cpf,
+    banheiro,
+    data: new Date()
+  });
 
-            if (reserva) {
+  await reserva.save();
 
-              if (reserva.servico === "Banheiro Masc") {
-
-    if(estadoBanheiros.masculino === "livre" && bloqueioBanheiro.masculino === false){
-
-        bloqueioBanheiro.masculino = true;
-
-        comandoPorta.masculino = true;
-        estadoBanheiros.masculino = "ocupado";
-
-    }
-
-}
-
-if (reserva.servico === "Banheiro Fem") {
-
-    if(estadoBanheiros.feminino === "livre" && bloqueioBanheiro.feminino === false){
-
-        bloqueioBanheiro.feminino = true;
-
-        comandoPorta.feminino = true;
-        estadoBanheiros.feminino = "ocupado";
-
-    }
-
-}
-            }
-
-        }
-
-        res.sendStatus(200);
-
-    } catch (err) {
-
-        res.sendStatus(500);
-
-    }
+  res.json({ ok: true });
 
 });
 
-app.post('/api/banheiro-status', (req, res) => {
 
-    const { tipo, status } = req.body;
 
-    if (tipo === "masculino" || tipo === "feminino") {
 
-        estadoBanheiros[tipo] = status;
+// WEBHOOK ASAAS
+app.post("/webhook-asaas", async (req, res) => {
 
-    }
+  const evento = req.body;
 
-    res.sendStatus(200);
+  console.log("WEBHOOK RECEBIDO:", evento);
 
-});
+  if (evento.event === "PAYMENT_RECEIVED") {
 
-app.post('/api/abrir-porta-painel', (req, res) => {
+    const cpf = evento.payment.externalReference;
 
-    const { tipo } = req.body;
+    const reserva = await Reserva.findOne({ cpf });
 
-    if (estadoBanheiros[tipo] === "ocupado") {
+    if (!reserva) return res.sendStatus(200);
 
-        return res.json({
-            erro: "Banheiro ocupado"
-        });
+    const tipo = reserva.banheiro;
 
-    }
+    estadoBanheiros[tipo] = "ocupado";
+
+    bloqueioBanheiro[tipo] = true;
 
     comandoPorta[tipo] = true;
 
-    res.json({
-        ok:true
-    });
+    console.log("PORTA LIBERADA:", tipo);
+
+  }
+
+  res.sendStatus(200);
 
 });
 
-app.get('/api/comando-porta', (req, res) => {
 
-    const tipo = req.query.tipo;
 
-    if (tipo === "masculino" || tipo === "feminino") {
 
-        const abrir = comandoPorta[tipo];
+// BOTÃO ABRIR PORTA
+app.post("/api/abrir-porta-painel", (req, res) => {
 
-        comandoPorta[tipo] = false;
+  const { tipo } = req.body;
 
-        return res.json({ abrir });
+  if (!bloqueioBanheiro[tipo]) {
 
-    }
+    return res.json({ erro: "Sem permissão" });
 
-    res.json({ abrir:false });
+  }
 
-});
+  comandoPorta[tipo] = true;
 
-app.post('/api/liberar-banheiro', (req, res) => {
-
-    const { tipo } = req.body;
-
-    if (tipo === "masculino" || tipo === "feminino") {
-
-        estadoBanheiros[tipo] = "livre";
-        bloqueioBanheiro[tipo] = false;
-
-    }
-
-    res.sendStatus(200);
+  res.json({ ok: true });
 
 });
 
-app.listen(process.env.PORT || 3000);
+
+
+
+// ESP32 CONSULTA
+app.get("/api/comando-porta", (req, res) => {
+
+  const tipo = req.query.tipo;
+
+  const abrir = comandoPorta[tipo] || false;
+
+  if (abrir) {
+
+    comandoPorta[tipo] = false;
+
+  }
+
+  res.json({ abrir });
+
+});
+
+
+
+
+// LIBERAR BANHEIRO
+app.post("/api/liberar-banheiro", (req, res) => {
+
+  const { tipo } = req.body;
+
+  estadoBanheiros[tipo] = "livre";
+
+  bloqueioBanheiro[tipo] = false;
+
+  res.json({ ok: true });
+
+});
+
+
+
+app.listen(process.env.PORT || 3000, () => {
+
+  console.log("Servidor rodando");
+
+});
